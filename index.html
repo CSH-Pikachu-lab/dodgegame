@@ -26,17 +26,17 @@
             display: flex;
             align-items: flex-start;
             gap: 24px;
-            background: rgba(22, 27, 34, 0.85);
+            background: rgba(22, 27, 34, 0.75);
             padding: 24px;
             border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(255, 220, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(255, 220, 0, 0.05);
             backdrop-filter: blur(10px);
         }
 
         .timeline-sidebar {
             width: 70px;
-            background: rgba(13, 17, 23, 0.9);
+            background: rgba(13, 17, 23, 0.85);
             border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 16px;
             padding: 18px 8px;
@@ -54,10 +54,11 @@
         }
 
         .timeline-title {
-            font-size: 18px;
+            font-size: 15px;
             font-weight: 800;
             color: #ffd000;
-            text-shadow: 0 0 8px rgba(255, 208, 0, 0.5);
+            letter-spacing: 1px;
+            text-shadow: 0 0 8px rgba(255, 208, 0, 0.4);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -146,7 +147,6 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            position: relative;
         }
 
         .header-container {
@@ -172,38 +172,57 @@
             transition: opacity 0.05s ease;
         }
 
-        .btn-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .btn {
-            background: rgba(255, 255, 255, 0.1);
+        .test-btn {
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
             color: white;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.8);
             padding: 6px 14px;
             font-size: 13px;
             font-weight: bold;
             border-radius: 20px;
             cursor: pointer;
+            box-shadow: 0 0 10px rgba(255, 75, 43, 0.5);
             transition: all 0.2s ease;
         }
 
-        .btn:hover {
-            background: rgba(255, 255, 255, 0.2);
+        .test-btn:hover {
             transform: scale(1.05);
-        }
-
-        .test-btn {
-            background: linear-gradient(135deg, #ff416c, #ff4b2b);
-            border: 2px solid rgba(255, 255, 255, 0.8);
-            box-shadow: 0 0 10px rgba(255, 75, 43, 0.5);
+            box-shadow: 0 0 15px rgba(255, 75, 43, 0.8);
         }
 
         .test-btn.active {
             background: linear-gradient(135deg, #00b09b, #96c93d);
             box-shadow: 0 0 12px rgba(150, 201, 61, 0.8);
+        }
+
+        .controls-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .lives-container {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .life-icon {
+            width: 26px;
+            height: 26px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 4px rgba(255, 220, 0, 0.6));
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .life-icon.lost {
+            opacity: 0.15;
+            filter: grayscale(100%);
+            transform: scale(0.75);
         }
 
         #gameCanvas {
@@ -212,41 +231,51 @@
             border-radius: 12px;
             box-shadow: 0 0 25px rgba(0, 0, 0, 0.8);
             display: block;
+        }
+
+        /* 모바일용 조이스틱 스타일 */
+        .joystick-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 15px;
             touch-action: none;
         }
 
-        .ui-overlay {
-            position: absolute;
-            top: 45px;
-            left: 0;
-            width: 600px;
-            height: 400px;
+        .joystick-base {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.05);
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: rgba(0, 0, 0, 0.85);
-            border-radius: 12px;
-            z-index: 10;
         }
 
-        .restart-overlay-btn {
-            margin-top: 18px;
-            padding: 10px 24px;
-            font-size: 16px;
-            font-weight: bold;
-            color: #111;
-            background: #ffd000;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            box-shadow: 0 0 15px rgba(255, 208, 0, 0.8);
-            transition: transform 0.15s ease, background-color 0.15s ease;
+        .joystick-stick {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: radial-gradient(circle, #ffee00 0%, #ff9900 100%);
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 0 12px rgba(255, 238, 0, 0.8);
+            pointer-events: none;
+            transition: transform 0.05s linear;
         }
 
-        .restart-overlay-btn:hover {
-            transform: scale(1.08);
-            background: #ffffff;
+        @media (min-width: 768px) {
+            .game-main-content {
+                display: flex;
+                align-items: center;
+                gap: 20px;
+            }
+            .joystick-container {
+                margin-top: 0;
+            }
         }
     </style>
 </head>
@@ -289,26 +318,21 @@
                     <span>생존 시간: <strong id="score">0</strong>초</span>
                     <span id="invincibleStatus" class="invincible-text" style="display: none;">⚡ 라이츄 진화 (무적)! ⚡</span>
                 </div>
-                <div class="btn-group">
-                    <button id="soundBtn" class="btn">🔊 소리 켜짐</button>
-                    <button id="testBtn" class="btn test-btn">쫄?</button>
+                <div class="controls-right">
+                    <div id="livesContainer" class="lives-container" title="남은 목숨"></div>
+                    <button id="testBtn" class="test-btn">쫄?</button>
                 </div>
             </div>
 
-            <canvas id="gameCanvas" width="600" height="400"></canvas>
-
-            <!-- 게임 오버 / 클리어 오버레이 -->
-            <div id="gameOverOverlay" class="ui-overlay" style="display: none;">
-                <h1 style="color: #FF4D4D; font-size: 38px; margin: 0 0 10px 0;">GAME OVER</h1>
-                <p id="gameOverTime" style="font-size: 20px; color: #FFF; margin: 5px 0;"></p>
-                <button class="restart-overlay-btn" onclick="restartGame()">다시 도전하기 (R)</button>
-            </div>
-
-            <div id="gameWinOverlay" class="ui-overlay" style="display: none;">
-                <h1 style="color: #FFDD00; font-size: 40px; text-shadow: 0 0 15px #FFAA00; margin: 0 0 10px 0;">⚡ 생존완료 ⚡</h1>
-                <p style="font-size: 20px; color: #FFF; margin: 5px 0;">모든 시련을 극복하고 완벽하게 생존했습니다!</p>
-                <p id="gameWinTime" style="font-size: 17px; color: #A8FFB2; margin: 5px 0;"></p>
-                <button class="restart-overlay-btn" onclick="restartGame()">다시 시작하기 (R)</button>
+            <div class="game-main-content">
+                <canvas id="gameCanvas" width="600" height="400"></canvas>
+                
+                <!-- 모바일 터치 조이스틱 -->
+                <div class="joystick-container">
+                    <div id="joystickBase" class="joystick-base">
+                        <div id="joystickStick" class="joystick-stick"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -319,12 +343,7 @@
         const scoreElement = document.getElementById("score");
         const invincibleStatusElement = document.getElementById("invincibleStatus");
         const testBtn = document.getElementById("testBtn");
-        const soundBtn = document.getElementById("soundBtn");
-
-        const gameOverOverlay = document.getElementById("gameOverOverlay");
-        const gameWinOverlay = document.getElementById("gameWinOverlay");
-        const gameOverTimeText = document.getElementById("gameOverTime");
-        const gameWinTimeText = document.getElementById("gameWinTime");
+        const livesContainer = document.getElementById("livesContainer");
 
         const progressBarFill = document.getElementById("progressBarFill");
         const node0 = document.getElementById("node-0");
@@ -332,88 +351,6 @@
         const node35 = document.getElementById("node-35");
         const node50 = document.getElementById("node-50");
         const node70 = document.getElementById("node-70");
-
-        // Web Audio API 효과음 생성기
-        let isMuted = false;
-        let audioCtx = null;
-
-        function getAudioContext() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-            return audioCtx;
-        }
-
-        function playSound(type) {
-            if (isMuted) return;
-            try {
-                const ctxAudio = getAudioContext();
-                if (!ctxAudio) return;
-
-                const osc = ctxAudio.createOscillator();
-                const gain = ctxAudio.createGain();
-                osc.connect(gain);
-                gain.connect(ctxAudio.destination);
-
-                const now = ctxAudio.currentTime;
-
-                if (type === 'thunderstone') {
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(523.25, now);
-                    osc.frequency.exponentialRampToValueAtTime(1046.50, now + 0.3);
-                    gain.gain.setValueAtTime(0.3, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                    osc.start(now);
-                    osc.stop(now + 0.3);
-                } else if (type === 'skill') {
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(150, now);
-                    osc.frequency.exponentialRampToValueAtTime(600, now + 0.4);
-                    gain.gain.setValueAtTime(0.4, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-                    osc.start(now);
-                    osc.stop(now + 0.4);
-                } else if (type === 'thunder') {
-                    osc.type = 'square';
-                    osc.frequency.setValueAtTime(80, now);
-                    osc.frequency.setValueAtTime(220, now + 0.1);
-                    osc.frequency.setValueAtTime(110, now + 0.2);
-                    gain.gain.setValueAtTime(0.5, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
-                    osc.start(now);
-                    osc.stop(now + 0.5);
-                } else if (type === 'gameover') {
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(300, now);
-                    osc.frequency.exponentialRampToValueAtTime(60, now + 0.6);
-                    gain.gain.setValueAtTime(0.4, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
-                    osc.start(now);
-                    osc.stop(now + 0.6);
-                } else if (type === 'win') {
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(440, now);
-                    osc.frequency.setValueAtTime(554.37, now + 0.15);
-                    osc.frequency.setValueAtTime(659.25, now + 0.3);
-                    osc.frequency.setValueAtTime(880, now + 0.45);
-                    gain.gain.setValueAtTime(0.4, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.7);
-                    osc.start(now);
-                    osc.stop(now + 0.7);
-                }
-            } catch (e) {
-                // 사운드 재생 실패 시 무시
-            }
-        }
-
-        soundBtn.addEventListener("click", () => {
-            isMuted = !isMuted;
-            soundBtn.textContent = isMuted ? "🔇 소리 끔" : "🔊 소리 켜짐";
-            if (!isMuted) playSound('thunderstone');
-        });
 
         let isTestInvincible = false;
 
@@ -428,7 +365,6 @@
                         invincibleStatusElement.style.display = "inline";
                         invincibleStatusElement.style.opacity = "1";
                     }
-                    playSound('thunderstone');
                 } else {
                     testBtn.classList.remove("active");
                     pikachu.isInvincible = false;
@@ -518,11 +454,14 @@
         const CANVAS_WIDTH = canvas ? canvas.width : 600;
         const CANVAS_HEIGHT = canvas ? canvas.height : 400;
         
-        const BASE_SLOWPOKE_SPEED = 152;
+        const BASE_SLOWPOKE_SPEED = 150;
         const BASE_MAGIKARP_SPEED = BASE_SLOWPOKE_SPEED * 0.5;
         const THUNDER_STONE_SPEED = BASE_MAGIKARP_SPEED;
         const BASE_PIDGEOT_SPEED = 304;
         const BASE_ZAPDOS_SPEED = 456;
+
+        let lives = 3;
+        const MAX_LIVES = 3;
 
         let isGameOver = false;
         let isGameWon = false;
@@ -534,6 +473,7 @@
         let redThunderTriggered = false;
         let isCharizardEventFinished = false;
         let isBlastoiseEventFinished = false;
+        let isSpeedBoostedAt40 = false;
 
         let red = null;
         let charizard = null;
@@ -548,6 +488,78 @@
         let isThunderboltActive = false;
         let thunderboltTimer = 0;
         let lightningBolts = [];
+
+        let speedUpFlashTimer = 0;
+        let speedUpFlashParticles = [];
+
+        // 터치 조이스틱 변수
+        let joystickTouchId = null;
+        let joystickVector = { x: 0, y: 0 };
+        const joystickBase = document.getElementById("joystickBase");
+        const joystickStick = document.getElementById("joystickStick");
+
+        if (joystickBase && joystickStick) {
+            const handleTouchStart = (e) => {
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    const touch = e.changedTouches[i];
+                    if (joystickTouchId === null) {
+                        joystickTouchId = touch.identifier;
+                        updateJoystick(touch);
+                        break;
+                    }
+                }
+            };
+
+            const handleTouchMove = (e) => {
+                if (joystickTouchId === null) return;
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    const touch = e.changedTouches[i];
+                    if (touch.identifier === joystickTouchId) {
+                        updateJoystick(touch);
+                        break;
+                    }
+                }
+            };
+
+            const handleTouchEnd = (e) => {
+                if (joystickTouchId === null) return;
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    if (e.changedTouches[i].identifier === joystickTouchId) {
+                        joystickTouchId = null;
+                        joystickVector = { x: 0, y: 0 };
+                        joystickStick.style.transform = "translate(0px, 0px)";
+                        break;
+                    }
+                }
+            };
+
+            const updateJoystick = (touch) => {
+                const rect = joystickBase.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                
+                let dx = touch.clientX - centerX;
+                let dy = touch.clientY - centerY;
+                const distance = Math.hypot(dx, dy);
+                const maxRadius = rect.width / 2 - 10;
+
+                if (distance > maxRadius) {
+                    dx = (dx / distance) * maxRadius;
+                    dy = (dy / distance) * maxRadius;
+                }
+
+                joystickStick.style.transform = `translate(${dx}px, ${dy}px)`;
+                joystickVector = {
+                    x: dx / maxRadius,
+                    y: dy / maxRadius
+                };
+            };
+
+            joystickBase.addEventListener("touchstart", handleTouchStart, { passive: false });
+            window.addEventListener("touchmove", handleTouchMove, { passive: false });
+            window.addEventListener("touchend", handleTouchEnd, { passive: false });
+            window.addEventListener("touchcancel", handleTouchEnd, { passive: false });
+        }
 
         let startTime = Date.now();
         let survivalTime = 0;
@@ -575,7 +587,8 @@
             boostedSpeed: 360,
             speed: 210,
             isInvincible: false,
-            invincibleTimer: 0
+            invincibleTimer: 0,
+            hitInvincibleTimer: 0
         };
 
         let slowpokes = [];
@@ -597,39 +610,21 @@
             }
         });
 
+        function updateLivesUI() {
+            if (!livesContainer) return;
+            livesContainer.innerHTML = "";
+            for (let i = 0; i < MAX_LIVES; i++) {
+                const img = document.createElement("img");
+                img.src = `${BASE_CDN}25.png`;
+                img.className = "life-icon" + (i >= lives ? " lost" : "");
+                img.alt = "life";
+                livesContainer.appendChild(img);
+            }
+        }
+
         window.addEventListener("keyup", (e) => {
             keys[e.key] = false;
         });
-
-        // 터치 지원 (캔버스 터치 이동)
-        let touchX = null, touchY = null;
-        canvas.addEventListener("touchstart", (e) => {
-            const rect = canvas.getBoundingClientRect();
-            touchX = e.touches[0].clientX - rect.left;
-            touchY = e.touches[0].clientY - rect.top;
-        });
-
-        canvas.addEventListener("touchmove", (e) => {
-            e.preventDefault();
-            const rect = canvas.getBoundingClientRect();
-            touchX = e.touches[0].clientX - rect.left;
-            touchY = e.touches[0].clientY - rect.top;
-        });
-
-        canvas.addEventListener("touchend", () => {
-            touchX = null;
-            touchY = null;
-        });
-
-        function clearAllIntervals() {
-            if (pidgeotInterval) clearInterval(pidgeotInterval);
-            if (zapdosInterval) clearInterval(zapdosInterval);
-            if (magikarpInterval) clearInterval(magikarpInterval);
-            if (thunderStoneTimeout) clearTimeout(thunderStoneTimeout);
-            if (thunderStoneInterval) clearInterval(thunderStoneInterval);
-            if (ghostInterval) clearInterval(ghostInterval);
-            pidgeotInterval = zapdosInterval = magikarpInterval = thunderStoneTimeout = thunderStoneInterval = ghostInterval = null;
-        }
 
         function updateProgressBar() {
             const TARGET_TIME = 70;
@@ -680,6 +675,7 @@
             if (isGhostPhase || isThunderboltActive || isGameWon) return;
             const { spawnX, spawnY } = getSpawnPosition();
             const angle = Math.atan2(pikachu.y - spawnY, pikachu.x - spawnX);
+            
             const speed = BASE_SLOWPOKE_SPEED;
             
             let type = 'slowpoke';
@@ -687,11 +683,10 @@
 
             if (isBlastoiseEventFinished && !isGhostPhase) {
                 type = 'slowking';
-                // 야돈킹 기존 1.3에서 20% 확대 => 1.56배
-                sizeMult = 1.56;
+                sizeMult = 1.56; // 기존 1.3의 20% 증가
             } else if (isCharizardEventFinished) {
                 type = 'slowbro';
-                sizeMult = 1.3;
+                sizeMult = 1.2;
             }
 
             slowpokes.push({
@@ -700,8 +695,8 @@
                 vx: Math.cos(angle) * speed,
                 vy: Math.sin(angle) * speed,
                 size: 15 * sizeMult,
-                drawWidth: Math.round(40 * sizeMult),
-                drawHeight: Math.round(40 * sizeMult),
+                drawWidth: 40 * sizeMult,
+                drawHeight: 40 * sizeMult,
                 type: type
             });
         }
@@ -802,10 +797,9 @@
                     dHeight = 195; 
                 } else {
                     type = 'mewtwo';
-                    // 뮤츠 기존 44 / 130px에서 20% 확대 => 히트박스 53, 표시 크기 156px
-                    size = 53; 
-                    dWidth = 156;
-                    dHeight = 156;
+                    size = 34.8; // 기존 29의 20% 증가
+                    dWidth = 104.4; // 기존 87의 20% 증가
+                    dHeight = 104.4; // 기존 87의 20% 증가
                 }
             } else if (isGhostPhase) {
                 speed = BASE_ZAPDOS_SPEED * 1.1;
@@ -865,11 +859,16 @@
         }
 
         function startSpecialTimers() {
-            clearAllIntervals();
+            if (pidgeotInterval) clearInterval(pidgeotInterval);
+            if (zapdosInterval) clearInterval(zapdosInterval);
+            if (magikarpInterval) clearInterval(magikarpInterval);
+            if (thunderStoneTimeout) clearTimeout(thunderStoneTimeout);
+            if (thunderStoneInterval) clearInterval(thunderStoneInterval);
+            if (ghostInterval) clearInterval(ghostInterval);
 
             pidgeotInterval = setInterval(() => { if (!isGameOver && !isGameWon) spawnPidgeot(); }, 7000);
             magikarpInterval = setInterval(() => { if (!isGameOver && !isGameWon) spawnMagikarp(); }, 15000);
-            zapdosInterval = setInterval(() => { if (!isGameOver && !isGameWon) spawnZapdos(); }, 20000);
+            zapdosInterval = setInterval(() => { if (!isGameOver && !isGameWon) spawnZapdos(); }, 19000);
 
             thunderStoneTimeout = setTimeout(() => {
                 if (!isGameOver && !isGameWon) {
@@ -879,23 +878,6 @@
                     }, 8000);
                 }
             }, 8000);
-        }
-
-        function triggerGameOver() {
-            isGameOver = true;
-            clearAllIntervals();
-            playSound('gameover');
-            if (gameOverTimeText) gameOverTimeText.textContent = `기록: ${survivalTime}초`;
-            if (gameOverOverlay) gameOverOverlay.style.display = "flex";
-        }
-
-        function triggerGameWin() {
-            isGameWon = true;
-            clearAllIntervals();
-            playSound('win');
-            if (gameWinTimeText) gameWinTimeText.textContent = `최종 기록: ${survivalTime}초 (생존 완료)`;
-            if (gameWinOverlay) gameWinOverlay.style.display = "flex";
-            updateProgressBar();
         }
 
         function restartGame() {
@@ -909,9 +891,10 @@
             redThunderTriggered = false;
             isCharizardEventFinished = false;
             isBlastoiseEventFinished = false;
+            isSpeedBoostedAt40 = false;
 
-            if (gameOverOverlay) gameOverOverlay.style.display = "none";
-            if (gameWinOverlay) gameWinOverlay.style.display = "none";
+            lives = 3;
+            updateLivesUI();
 
             red = null;
             charizard = null;
@@ -934,9 +917,17 @@
             ghosts = [];
             thunderStones = [];
             electricSparkParticles = [];
+            speedUpFlashParticles = [];
+            speedUpFlashTimer = 0;
+
+            joystickTouchId = null;
+            joystickVector = { x: 0, y: 0 };
+            if (joystickStick) joystickStick.style.transform = "translate(0px, 0px)";
 
             nextMewtwoSpawnTime = 30;
             isGhostPhase = false;
+            if (ghostInterval) clearInterval(ghostInterval);
+            ghostInterval = null;
 
             pikachu.x = CANVAS_WIDTH / 2;
             pikachu.y = CANVAS_HEIGHT / 2;
@@ -944,6 +935,7 @@
             pikachu.speed = 210;
             pikachu.isInvincible = isTestInvincible;
             pikachu.invincibleTimer = 0;
+            pikachu.hitInvincibleTimer = 0;
 
             if (invincibleStatusElement) {
                 if (isTestInvincible) {
@@ -978,9 +970,32 @@
                 updateProgressBar();
             }
 
+            // 생존 시간 40초 시 피카츄 속도 상향 이벤트
+            if (survivalTime >= 40 && !isSpeedBoostedAt40) {
+                isSpeedBoostedAt40 = true;
+                pikachu.normalSpeed = pikachu.boostedSpeed;
+                if (!pikachu.isInvincible) {
+                    pikachu.speed = pikachu.boostedSpeed;
+                }
+                speedUpFlashTimer = 1.0;
+                for (let i = 0; i < 28; i++) {
+                    const angle = (i / 28) * Math.PI * 2;
+                    const spd = Math.random() * 160 + 90;
+                    speedUpFlashParticles.push({
+                        x: pikachu.x,
+                        y: pikachu.y,
+                        vx: Math.cos(angle) * spd,
+                        vy: Math.sin(angle) * spd,
+                        size: Math.random() * 6 + 3,
+                        life: 1.0,
+                        decay: 1.4,
+                        color: i % 2 === 0 ? '#ffff00' : '#00f2fe'
+                    });
+                }
+            }
+
             if (survivalTime >= 70 && !pikachuThunderboltTriggered) {
                 pikachuThunderboltTriggered = true;
-                playSound('skill');
                 red = {
                     x: CANVAS_WIDTH + 100,
                     y: CANVAS_HEIGHT / 2 + 75,
@@ -998,7 +1013,6 @@
 
             if (survivalTime >= 50 && !alakazamTriggered) {
                 alakazamTriggered = true;
-                playSound('skill');
                 red = {
                     x: CANVAS_WIDTH + 100,
                     y: CANVAS_HEIGHT / 2 + 75,
@@ -1011,7 +1025,6 @@
                 };
             } else if (survivalTime >= 35 && !blastoiseTriggered) {
                 blastoiseTriggered = true;
-                playSound('skill');
                 red = {
                     x: CANVAS_WIDTH + 100,
                     y: CANVAS_HEIGHT / 2 + 75,
@@ -1025,7 +1038,6 @@
             } else if (survivalTime >= 18 && !charizardTriggered) {
                 charizardTriggered = true;
                 isPhase2 = true;
-                playSound('skill');
                 red = {
                     x: CANVAS_WIDTH + 100,
                     y: CANVAS_HEIGHT / 2 + 75,
@@ -1052,11 +1064,10 @@
                             isThunderboltActive = true;
                             thunderboltTimer = 0;
                             redThunderTriggered = true; 
-                            playSound('thunder');
 
                             slowpokes = []; magikarps = []; pidgeots = [];
                             zapdoses = []; ghosts = []; thunderStones = [];
-                            clearAllIntervals();
+                            if (ghostInterval) clearInterval(ghostInterval);
                             
                             red.state = 'leaves_p';
                         }
@@ -1087,19 +1098,17 @@
                     });
                 }
 
-                for (let i = 0; i < 6; i++) {
-                    if (fireParticles.length < 80) {
-                        fireParticles.push({
-                            x: Math.random() * CANVAS_WIDTH,
-                            y: Math.random() * CANVAS_HEIGHT,
-                            vx: (Math.random() - 0.5) * 200,
-                            vy: (Math.random() - 0.5) * 200,
-                            size: Math.random() * 8 + 4,
-                            life: 0.5,
-                            decay: 2.2,
-                            colorType: Math.random() > 0.3 ? '#ffff00' : '#ffffff'
-                        });
-                    }
+                for (let i = 0; i < 8; i++) {
+                    fireParticles.push({
+                        x: Math.random() * CANVAS_WIDTH,
+                        y: Math.random() * CANVAS_HEIGHT,
+                        vx: (Math.random() - 0.5) * 200,
+                        vy: (Math.random() - 0.5) * 200,
+                        size: Math.random() * 8 + 4,
+                        life: 0.5,
+                        decay: 2.2,
+                        colorType: Math.random() > 0.3 ? '#ffff00' : '#ffffff'
+                    });
                 }
 
                 if (thunderboltTimer >= 2.0) {
@@ -1111,7 +1120,8 @@
             if (redThunderTriggered && !isThunderboltActive && !isGameWon) {
                 thunderboltTimer += dt; 
                 if (thunderboltTimer >= 2.5) {
-                    triggerGameWin();
+                    isGameWon = true;
+                    updateProgressBar();
                 }
             }
 
@@ -1121,6 +1131,15 @@
                     if (charizard.x <= charizard.targetX) {
                         charizard.x = charizard.targetX;
                         charizard.state = 'firing';
+                        isCharizardEventFinished = true;
+                        slowpokes.forEach(s => {
+                            if (s.type === 'slowpoke') {
+                                s.type = 'slowbro';
+                                s.size = 15 * 1.2;
+                                s.drawWidth = 40 * 1.2;
+                                s.drawHeight = 40 * 1.2;
+                            }
+                        });
                         fireBlast = { x: charizard.x - 150, y: CANVAS_HEIGHT / 2, vx: -580, drawWidth: 540, drawHeight: 540 };
                     }
                 } else if (charizard.state === 'firing') {
@@ -1132,28 +1151,25 @@
                     charizard.x += 400 * dt;
                     if (charizard.x > CANVAS_WIDTH + 360) {
                         charizard = null;
-                        isCharizardEventFinished = true;
                     }
                 }
             }
 
             if (fireBlast) {
                 fireBlast.x += fireBlast.vx * dt;
-                for (let i = 0; i < 5; i++) {
-                    if (fireParticles.length < 120) {
-                        const angle = Math.random() * Math.PI * 2;
-                        const speed = Math.random() * 120 + 40;
-                        fireParticles.push({
-                            x: fireBlast.x + (Math.random() - 0.5) * 250,
-                            y: fireBlast.y + (Math.random() - 0.5) * 250,
-                            vx: Math.cos(angle) * speed + fireBlast.vx * 0.2,
-                            vy: Math.sin(angle) * speed - Math.random() * 60,
-                            size: Math.random() * 16 + 8,
-                            life: 1.0,
-                            decay: Math.random() * 2.5 + 1.5,
-                            colorType: Math.random() > 0.4 ? '#ff3300' : (Math.random() > 0.5 ? '#ff9900' : '#ffff44')
-                        });
-                    }
+                for (let i = 0; i < 8; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = Math.random() * 120 + 40;
+                    fireParticles.push({
+                        x: fireBlast.x + (Math.random() - 0.5) * 250,
+                        y: fireBlast.y + (Math.random() - 0.5) * 250,
+                        vx: Math.cos(angle) * speed + fireBlast.vx * 0.2,
+                        vy: Math.sin(angle) * speed - Math.random() * 60,
+                        size: Math.random() * 16 + 8,
+                        life: 1.0,
+                        decay: Math.random() * 2.5 + 1.5,
+                        colorType: Math.random() > 0.4 ? '#ff3300' : (Math.random() > 0.5 ? '#ff9900' : '#ffff44')
+                    });
                 }
 
                 const isSwept = (obj) => Math.abs(obj.y - fireBlast.y) < 250 && obj.x > fireBlast.x - 250;
@@ -1171,6 +1187,15 @@
                     if (blastoise.x <= blastoise.targetX) {
                         blastoise.x = blastoise.targetX;
                         blastoise.state = 'firing';
+                        isBlastoiseEventFinished = true;
+                        slowpokes.forEach(s => {
+                            if (s.type === 'slowpoke' || s.type === 'slowbro') {
+                                s.type = 'slowking';
+                                s.size = 15 * 1.56;
+                                s.drawWidth = 40 * 1.56;
+                                s.drawHeight = 40 * 1.56;
+                            }
+                        });
                         hydroPump = { x: blastoise.x - 150, y: CANVAS_HEIGHT / 2, vx: -700, drawWidth: CANVAS_WIDTH * 1.5, drawHeight: CANVAS_HEIGHT };
                     }
                 } else if (blastoise.state === 'firing') {
@@ -1182,28 +1207,23 @@
                     blastoise.x += 400 * dt;
                     if (blastoise.x > CANVAS_WIDTH + 360) {
                         blastoise = null;
-                        isBlastoiseEventFinished = true;
-                        pikachu.normalSpeed = pikachu.boostedSpeed;
-                        pikachu.speed = pikachu.boostedSpeed;
                     }
                 }
             }
 
             if (hydroPump) {
                 hydroPump.x += hydroPump.vx * dt;
-                for (let i = 0; i < 8; i++) {
-                    if (fireParticles.length < 120) {
-                        fireParticles.push({
-                            x: hydroPump.x + Math.random() * hydroPump.drawWidth,
-                            y: hydroPump.y + (Math.random() - 0.5) * hydroPump.drawHeight,
-                            vx: hydroPump.vx * 0.6 + (Math.random() - 0.5) * 150,
-                            vy: (Math.random() - 0.5) * 150,
-                            size: Math.random() * 20 + 10,
-                            life: 1.0,
-                            decay: Math.random() * 3 + 1.5,
-                            colorType: Math.random() > 0.6 ? '#e1f5fe' : (Math.random() > 0.3 ? '#4fc3f7' : '#0288d1')
-                        });
-                    }
+                for (let i = 0; i < 15; i++) {
+                    fireParticles.push({
+                        x: hydroPump.x + Math.random() * hydroPump.drawWidth,
+                        y: hydroPump.y + (Math.random() - 0.5) * hydroPump.drawHeight,
+                        vx: hydroPump.vx * 0.6 + (Math.random() - 0.5) * 150,
+                        vy: (Math.random() - 0.5) * 150,
+                        size: Math.random() * 20 + 10,
+                        life: 1.0,
+                        decay: Math.random() * 3 + 1.5,
+                        colorType: Math.random() > 0.6 ? '#e1f5fe' : (Math.random() > 0.3 ? '#4fc3f7' : '#0288d1')
+                    });
                 }
 
                 const isSwept = (obj) => obj.x > hydroPump.x;
@@ -1237,18 +1257,16 @@
             if (isPsychicActive) {
                 globalObstacleOpacity -= dt * 1.0;
                 for (let i = 0; i < 3; i++) {
-                    if (fireParticles.length < 80) {
-                        fireParticles.push({
-                            x: Math.random() * CANVAS_WIDTH,
-                            y: Math.random() * CANVAS_HEIGHT,
-                            vx: (Math.random() - 0.5) * 100,
-                            vy: -Math.random() * 100 - 50,
-                            size: Math.random() * 10 + 5,
-                            life: 1.0,
-                            decay: 2.0,
-                            colorType: 'rgba(186, 85, 211, 0.8)'
-                        });
-                    }
+                    fireParticles.push({
+                        x: Math.random() * CANVAS_WIDTH,
+                        y: Math.random() * CANVAS_HEIGHT,
+                        vx: (Math.random() - 0.5) * 100,
+                        vy: -Math.random() * 100 - 50,
+                        size: Math.random() * 10 + 5,
+                        life: 1.0,
+                        decay: 2.0,
+                        colorType: 'rgba(186, 85, 211, 0.8)'
+                    });
                 }
 
                 if (globalObstacleOpacity <= 0) {
@@ -1272,22 +1290,31 @@
             }
 
             if (pikachu.isInvincible || isTestInvincible) {
-                for (let i = 0; i < 2; i++) {
-                    if (electricSparkParticles.length < 50) {
-                        const angle = Math.random() * Math.PI * 2;
-                        const dist = 8 + Math.random() * 20;
-                        electricSparkParticles.push({
-                            x: pikachu.x + Math.cos(angle) * dist,
-                            y: pikachu.y + Math.sin(angle) * dist,
-                            vx: (Math.random() - 0.5) * 220,
-                            vy: (Math.random() - 0.5) * 220,
-                            size: Math.random() * 2.5 + 1.2,
-                            life: 1.0,
-                            decay: Math.random() * 8.0 + 5.0,
-                            color: Math.random() > 0.5 ? '#ffff00' : (Math.random() > 0.3 ? '#00ffff' : '#ffffff')
-                        });
-                    }
+                for (let i = 0; i < 3; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const dist = 8 + Math.random() * 20;
+                    electricSparkParticles.push({
+                        x: pikachu.x + Math.cos(angle) * dist,
+                        y: pikachu.y + Math.sin(angle) * dist,
+                        vx: (Math.random() - 0.5) * 220,
+                        vy: (Math.random() - 0.5) * 220,
+                        size: Math.random() * 2.5 + 1.2,
+                        life: 1.0,
+                        decay: Math.random() * 8.0 + 5.0,
+                        color: Math.random() > 0.5 ? '#ffff00' : (Math.random() > 0.3 ? '#00ffff' : '#ffffff')
+                    });
                 }
+            }
+
+            if (speedUpFlashTimer > 0) {
+                speedUpFlashTimer -= dt;
+            }
+            for (let i = speedUpFlashParticles.length - 1; i >= 0; i--) {
+                const p = speedUpFlashParticles[i];
+                p.x += p.vx * dt;
+                p.y += p.vy * dt;
+                p.life -= p.decay * dt;
+                if (p.life <= 0) speedUpFlashParticles.splice(i, 1);
             }
 
             for (let i = electricSparkParticles.length - 1; i >= 0; i--) {
@@ -1296,6 +1323,11 @@
                 p.y += p.vy * dt;
                 p.life -= p.decay * dt;
                 if (p.life <= 0) electricSparkParticles.splice(i, 1);
+            }
+
+            if (pikachu.hitInvincibleTimer > 0) {
+                pikachu.hitInvincibleTimer -= dt;
+                if (pikachu.hitInvincibleTimer < 0) pikachu.hitInvincibleTimer = 0;
             }
 
             if (pikachu.isInvincible && !isTestInvincible) {
@@ -1318,7 +1350,6 @@
                 }
             }
 
-            // 야돈/야도란/야돈킹 생성 한도 조정
             if (!isGhostPhase && !isThunderboltActive && !isGameWon) {
                 const targetSlowpokeCount = Math.min(20, 5 + Math.floor(survivalTime / 1.5));
                 if (slowpokes.length < targetSlowpokeCount && Math.random() < 0.05) {
@@ -1334,17 +1365,15 @@
             if (keys["ArrowLeft"] || keys["a"] || keys["A"]) dx -= 1;
             if (keys["ArrowRight"] || keys["d"] || keys["D"]) dx += 1;
 
-            if (touchX !== null && touchY !== null) {
-                const tdx = touchX - pikachu.x;
-                const tdy = touchY - pikachu.y;
-                const dist = Math.hypot(tdx, tdy);
-                if (dist > 10) {
-                    dx = tdx / dist;
-                    dy = tdy / dist;
-                }
-            } else if (dx !== 0 && dy !== 0) {
+            if (dx !== 0 && dy !== 0) {
                 dx *= Math.SQRT1_2;
                 dy *= Math.SQRT1_2;
+            }
+
+            // 모바일 터치 조이스틱 입력 결합
+            if (joystickVector.x !== 0 || joystickVector.y !== 0) {
+                dx = joystickVector.x;
+                dy = joystickVector.y;
             }
 
             pikachu.x += dx * pikachu.speed * dt;
@@ -1368,7 +1397,6 @@
                     pikachu.isInvincible = true;
                     pikachu.invincibleTimer = 4.0;
                     pikachu.speed = pikachu.boostedSpeed;
-                    playSound('thunderstone');
                     if (invincibleStatusElement) {
                         if (!isTestInvincible) {
                             invincibleStatusElement.textContent = "⚡ 라이츄 진화 (무적)! ⚡";
@@ -1380,44 +1408,54 @@
             }
 
             const checkCollision = (target) => {
-                if (pikachu.isInvincible || isTestInvincible) return false;
+                if (pikachu.isInvincible || isTestInvincible || pikachu.hitInvincibleTimer > 0) return false;
                 if (isPsychicActive || isThunderboltActive || isGameWon) return false;
                 return Math.hypot(pikachu.x - target.x, pikachu.y - target.y) < pikachu.size + target.size;
+            };
+
+            const handleHit = () => {
+                lives--;
+                updateLivesUI();
+                if (lives <= 0) {
+                    isGameOver = true;
+                } else {
+                    pikachu.hitInvincibleTimer = 1.5;
+                }
             };
 
             for (let i = slowpokes.length - 1; i >= 0; i--) {
                 const s = slowpokes[i];
                 s.x += s.vx * dt; s.y += s.vy * dt;
                 if (s.x < -60 || s.x > CANVAS_WIDTH + 60 || s.y < -60 || s.y > CANVAS_HEIGHT + 60) { slowpokes.splice(i, 1); continue; }
-                if (checkCollision(s)) { triggerGameOver(); return; }
+                if (checkCollision(s)) handleHit();
             }
 
             for (let i = magikarps.length - 1; i >= 0; i--) {
                 const m = magikarps[i];
                 m.x += m.vx * dt; m.y += m.vy * dt;
                 if (m.x < -60 || m.x > CANVAS_WIDTH + 60 || m.y < -60 || m.y > CANVAS_HEIGHT + 60) { magikarps.splice(i, 1); continue; }
-                if (checkCollision(m)) { triggerGameOver(); return; }
+                if (checkCollision(m)) handleHit();
             }
 
             for (let i = pidgeots.length - 1; i >= 0; i--) {
                 const p = pidgeots[i];
                 p.x += p.vx * dt; p.y += p.vy * dt;
                 if (p.x < -80 || p.x > CANVAS_WIDTH + 80 || p.y < -80 || p.y > CANVAS_HEIGHT + 80) { pidgeots.splice(i, 1); continue; }
-                if (checkCollision(p)) { triggerGameOver(); return; }
+                if (checkCollision(p)) handleHit();
             }
 
             for (let i = zapdoses.length - 1; i >= 0; i--) {
                 const z = zapdoses[i];
                 z.x += z.vx * dt; z.y += z.vy * dt;
                 if (z.x < -250 || z.x > CANVAS_WIDTH + 250 || z.y < -250 || z.y > CANVAS_HEIGHT + 250) { zapdoses.splice(i, 1); continue; }
-                if (checkCollision(z)) { triggerGameOver(); return; }
+                if (checkCollision(z)) handleHit();
             }
 
             for (let i = ghosts.length - 1; i >= 0; i--) {
                 const g = ghosts[i];
                 g.x += g.vx * dt; g.y += g.vy * dt;
                 if (g.x < -100 || g.x > CANVAS_WIDTH + 100 || g.y < -100 || g.y > CANVAS_HEIGHT + 100) { ghosts.splice(i, 1); continue; }
-                if (checkCollision(g)) { triggerGameOver(); return; }
+                if (checkCollision(g)) handleHit();
             }
         }
 
@@ -1462,6 +1500,31 @@
                     if (i === 0) ctx.moveTo(px, py);
                     else ctx.lineTo(px, py);
                 }
+                ctx.stroke();
+            }
+
+            const numSparks = 4;
+            for (let s = 0; s < numSparks; s++) {
+                const angle = Math.random() * Math.PI * 2;
+                const innerR = 6 + Math.random() * 6;
+                const outerR = currentRadius + 6 + Math.random() * 14;
+
+                const x1 = x + Math.cos(angle) * innerR;
+                const y1 = y + Math.sin(angle) * innerR;
+                const x2 = x + Math.cos(angle) * outerR;
+                const y2 = y + Math.sin(angle) * outerR;
+
+                ctx.strokeStyle = Math.random() > 0.3 ? "#ffffff" : "#ffee00";
+                ctx.lineWidth = 1.8;
+                ctx.shadowColor = "#ffffff";
+                ctx.shadowBlur = 10;
+
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                const midX = (x1 + x2) / 2 + (Math.random() - 0.5) * 16;
+                const midY = (y1 + y2) / 2 + (Math.random() - 0.5) * 16;
+                ctx.lineTo(midX, midY);
+                ctx.lineTo(x2, y2);
                 ctx.stroke();
             }
 
@@ -1592,11 +1655,7 @@
             ctx.lineWidth = 2.5;
 
             ctx.beginPath();
-            if (ctx.roundRect) {
-                ctx.roundRect(bx, by, bubbleWidth, bubbleHeight, 8);
-            } else {
-                ctx.rect(bx, by, bubbleWidth, bubbleHeight);
-            }
+            ctx.roundRect(bx, by, bubbleWidth, bubbleHeight, 8);
             ctx.fill();
             ctx.stroke();
 
@@ -1627,11 +1686,50 @@
                 ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
             }
 
+            if (speedUpFlashTimer > 0) {
+                ctx.save();
+                ctx.globalCompositeOperation = "lighter";
+                const alpha = Math.max(0, speedUpFlashTimer);
+                const radius = (1.0 - speedUpFlashTimer) * 75 + 15;
+
+                ctx.beginPath();
+                ctx.arc(pikachu.x, pikachu.y, radius, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(0, 242, 254, ${alpha})`;
+                ctx.lineWidth = 5 * alpha;
+                ctx.shadowColor = "#00f2fe";
+                ctx.shadowBlur = 18;
+                ctx.stroke();
+
+                const grad = ctx.createRadialGradient(pikachu.x, pikachu.y, 0, pikachu.x, pikachu.y, 40);
+                grad.addColorStop(0, `rgba(255, 255, 255, ${alpha * 0.95})`);
+                grad.addColorStop(0.5, `rgba(255, 230, 0, ${alpha * 0.7})`);
+                grad.addColorStop(1, `rgba(0, 242, 254, 0)`);
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(pikachu.x, pikachu.y, 40, 0, Math.PI * 2);
+                ctx.fill();
+
+                speedUpFlashParticles.forEach(p => {
+                    ctx.fillStyle = p.color;
+                    ctx.globalAlpha = Math.max(0, p.life);
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+                ctx.restore();
+            }
+
             if (pikachu.isInvincible || isTestInvincible) {
                 const shouldDrawField = isTestInvincible || pikachu.invincibleTimer > 1.5 || (Math.floor(pikachu.invincibleTimer * 12) % 2 === 0);
                 if (shouldDrawField) {
                     drawElectricField(pikachu.x, pikachu.y);
                 }
+            }
+
+            ctx.save();
+            if (pikachu.hitInvincibleTimer > 0 && !pikachu.isInvincible && !isTestInvincible) {
+                const isFlickerVisible = Math.floor(pikachu.hitInvincibleTimer * 14) % 2 === 0;
+                ctx.globalAlpha = isFlickerVisible ? 0.3 : 1.0;
             }
 
             const isCurrentRaichu = pikachu.isInvincible || isTestInvincible;
@@ -1647,6 +1745,7 @@
                 ctx.textBaseline = "middle";
                 ctx.fillText(isCurrentRaichu ? "⚡🐭" : "⚡", pikachu.x, pikachu.y);
             }
+            ctx.restore();
 
             ctx.save();
             ctx.globalAlpha = globalObstacleOpacity;
@@ -1717,7 +1816,7 @@
                     ctx.fillStyle = "#ffffff";
                     let fontSize = "32px";
                     if (z.type === 'oak') fontSize = "96px";
-                    else if (z.type === 'mewtwo') fontSize = "76px";
+                    else if (z.type === 'mewtwo') fontSize = "52px"; // 이모지 대체 텍스트 크기 상향
                     ctx.font = fontSize + " sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
                     ctx.fillText(emoji, z.x, z.y);
                 }
@@ -1782,6 +1881,46 @@
                     drawSpeechBubble(red.x, red.y - red.drawHeight / 2, red.text);
                 }
             }
+
+            if (isGameOver) {
+                ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+                ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+                ctx.fillStyle = "#FF4D4D";
+                ctx.font = "bold 36px sans-serif";
+                ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                ctx.fillText("GAME OVER", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 20);
+
+                ctx.fillStyle = "#FFF";
+                ctx.font = "18px sans-serif";
+                ctx.fillText(`기록: ${survivalTime}초`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 20);
+                ctx.fillText("'R' 키를 눌러 다시 시작하세요", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 50);
+            }
+
+            if (isGameWon) {
+                ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+                ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+                ctx.fillStyle = "#FFDD00";
+                ctx.shadowColor = "#FFAA00";
+                ctx.shadowBlur = 20;
+                ctx.font = "bold 40px sans-serif";
+                ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                ctx.fillText("⚡ 생존완료 ⚡", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 40);
+
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = "#FFFFFF";
+                ctx.font = "bold 20px sans-serif";
+                ctx.fillText("모든 시련을 극복하고 완벽하게 생존했습니다!", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 10);
+
+                ctx.fillStyle = "#A8FFB2";
+                ctx.font = "17px sans-serif";
+                ctx.fillText(`최종 기록: ${survivalTime}초 (클리어)`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 45);
+
+                ctx.fillStyle = "#DDDDDD";
+                ctx.font = "15px sans-serif";
+                ctx.fillText("'R' 키를 눌러 처음부터 다시 도전하세요", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 80);
+            }
         }
 
         function gameLoop(time) {
@@ -1793,6 +1932,7 @@
         }
 
         updateProgressBar();
+        updateLivesUI();
         startSpecialTimers();
         requestAnimationFrame(gameLoop);
     </script>
