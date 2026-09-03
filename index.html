@@ -267,14 +267,6 @@
             pointer-events: none;
             transition: transform 0.05s linear;
         }
-
-        @media (min-width: 768px) {
-            .game-main-content {
-                display: flex;
-                align-items: center;
-                gap: 20px;
-            }
-        }
     </style>
 </head>
 <body>
@@ -358,7 +350,7 @@
         let slowpokeLoaded = false, slowkingLoaded = false, slowbroLoaded = false;
         let magikarpLoaded = false, mewLoaded = false;
         let pidgeotLoaded = false, gyaradosLoaded = false, redGyaradosLoaded = false, jynxLoaded = false, snorlaxLoaded = false;
-        let zapdosLoaded = false, hoohLoaded = false, articunoLoaded = false;
+        let zapdosLoaded = false, hoohLoaded = false, articunoLoaded = false, moltresLoaded = false;
         let gastlyLoaded = false, haunterLoaded = false, gengarLoaded = false;
         let thunderStoneLoaded = false;
         let swimmerf2Loaded = false, swimmerLoaded = false;
@@ -394,6 +386,11 @@
         const blastoiseImg = loadImage("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/9.png", () => blastoiseLoaded = true);
         const alakazamImg = loadImage("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/65.png", () => alakazamLoaded = true);
         const mewtwoImg = loadImage(`${BASE_CDN}150.png`, () => mewtwoLoaded = true);
+
+        // 전설의 새 포켓몬 공식 이미지 로드 (프리져 #144, 썬더 #145, 파이어 #146)
+        const articunoImg = loadImage(`${BASE_CDN}144.png`, () => articunoLoaded = true);
+        const zapdosImg = loadImage(`${BASE_CDN}145.png`, () => zapdosLoaded = true);
+        const moltresImg = loadImage(`${BASE_CDN}146.png`, () => moltresLoaded = true);
 
         const oakImg = loadImage("https://play.pokemonshowdown.com/sprites/trainers/oak.png", 
             () => oakLoaded = true,
@@ -441,9 +438,7 @@
         const jynxImg = loadImage(`${BASE_CDN}124.png`, () => jynxLoaded = true);
         const snorlaxImg = loadImage(`${BASE_CDN}143.png`, () => snorlaxLoaded = true);
 
-        const zapdosImg = loadImage(`${BASE_CDN}145.png`, () => zapdosLoaded = true);
         const hoohImg = loadImage(`${BASE_CDN}250.png`, () => hoohLoaded = true);
-        const articunoImg = loadImage(`${BASE_CDN}144.png`, () => articunoLoaded = true);
         const gastlyImg = loadImage(`${BASE_CDN}92.png`, () => gastlyLoaded = true);
         const haunterImg = loadImage(`${BASE_CDN}93.png`, () => haunterLoaded = true);
         const gengarImg = loadImage(`${BASE_CDN}94.png`, () => gengarLoaded = true);
@@ -604,6 +599,7 @@
         let thunderStoneInterval = null;
         let ghostInterval = null;
         let infiniteObstacleInterval = null;
+        let legendaryBirdsInterval = null; // 무한모드 35초 후 프리져, 썬더, 파이어 스폰 타이머
         
         let swimmerTimeout = null;
         let dratiniTimeout = null;
@@ -782,6 +778,33 @@
             });
         }
 
+        // 무한 모드 진입 35초 후 프리져, 썬더, 파이어를 뮤츠 크기 및 속도로 3초마다 랜덤 스폰
+        function spawnLegendaryBird() {
+            if (isThunderboltActive || !isInfiniteMode) return;
+            const { spawnX, spawnY } = getSpawnPosition();
+            const angle = Math.atan2(pikachu.y - spawnY, pikachu.x - spawnX);
+            
+            // 뮤츠와 동일한 속도(BASE_ZAPDOS_SPEED * 1.1) 및 사이즈(size: 34.8, drawWidth: 104.4, drawHeight: 104.4)
+            const speed = BASE_ZAPDOS_SPEED * 1.1;
+            const size = 34.8;
+            const dWidth = 104.4;
+            const dHeight = 104.4;
+
+            const birdTypes = ['articuno', 'zapdos', 'moltres'];
+            const chosenType = birdTypes[Math.floor(Math.random() * birdTypes.length)];
+
+            zapdoses.push({
+                x: spawnX,
+                y: spawnY,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                size: size,
+                drawWidth: dWidth,
+                drawHeight: dHeight,
+                type: chosenType
+            });
+        }
+
         function spawnSwimmerObstacles() {
             const speed = BASE_SLOWPOKE_SPEED * 1.1; 
             const types = ['swimmerf2', 'swimmer'];
@@ -806,7 +829,6 @@
             if (isThunderboltActive) return;
             const { spawnX, spawnY } = getSpawnPosition();
             const angle = Math.atan2(pikachu.y - spawnY, pikachu.x - spawnX);
-            // 미뇽, 신뇽, 망나뇽 속도 1.2배 적용
             const speed = BASE_SLOWPOKE_SPEED * 1.2;
 
             dragons.push({
@@ -1011,6 +1033,7 @@
             if (thunderStoneInterval) clearInterval(thunderStoneInterval);
             if (ghostInterval) clearInterval(ghostInterval);
             if (infiniteObstacleInterval) clearInterval(infiniteObstacleInterval);
+            if (legendaryBirdsInterval) clearInterval(legendaryBirdsInterval);
             
             if (swimmerTimeout) clearTimeout(swimmerTimeout);
             if (dratiniTimeout) clearTimeout(dratiniTimeout);
@@ -1028,7 +1051,6 @@
             zapdoses = [];
             ghosts = [];
 
-            // 10종의 랜덤 장애물 생성 주기를 500ms로 수정
             infiniteObstacleInterval = setInterval(() => {
                 if (!isGameOver) spawnInfiniteRandomObstacle();
             }, 500);
@@ -1036,6 +1058,15 @@
             thunderStoneInterval = setInterval(() => {
                 if (!isGameOver) spawnThunderStone();
             }, 12000);
+
+            // 무한모드 진입 35초 후 프리져, 썬더, 파이어 3초에 한번씩 등장 시작
+            setTimeout(() => {
+                if (!isGameOver && isInfiniteMode) {
+                    legendaryBirdsInterval = setInterval(() => {
+                        if (!isGameOver && isInfiniteMode) spawnLegendaryBird();
+                    }, 3000);
+                }
+            }, 35000);
 
             swimmerTimeout = setTimeout(() => {
                 if (!isGameOver) spawnSwimmerObstacles();
@@ -2038,10 +2069,11 @@
 
             zapdoses.forEach(z => {
                 let img = null, emoji = "⚡🦅";
-                if (z.type === 'mewtwo') { img = mewtwoLoaded ? mewtwoImg : null; emoji = "🧬🐱"; }
+                if (z.type === 'articuno') { img = articunoLoaded ? articunoImg : null; emoji = "❄️🦅"; }
+                else if (z.type === 'moltres') { img = moltresLoaded ? moltresImg : null; emoji = "🔥🦅"; }
+                else if (z.type === 'mewtwo') { img = mewtwoLoaded ? mewtwoImg : null; emoji = "🧬🐱"; }
                 else if (z.type === 'oak') { img = oakLoaded ? oakImg : null; emoji = "👴🏻🔬"; }
                 else if (z.type === 'snorlax') { img = snorlaxLoaded ? snorlaxImg : null; emoji = "😴🐻"; }
-                else if (z.type === 'articuno') { img = articunoLoaded ? articunoImg : null; emoji = "❄️🦅"; }
                 else if (z.type === 'hooh') { img = hoohLoaded ? hoohImg : null; emoji = "🌈🦅"; }
                 else { img = zapdosLoaded ? zapdosImg : null; }
 
