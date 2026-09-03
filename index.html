@@ -43,7 +43,7 @@
             display: flex;
             flex-direction: column;
             box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
-            height: 445px;
+            height: 645px;
         }
 
         .timeline-header {
@@ -233,7 +233,6 @@
             display: block;
         }
 
-        /* 모바일용 조이스틱 스타일 */
         .joystick-container {
             display: flex;
             justify-content: center;
@@ -325,9 +324,8 @@
             </div>
 
             <div class="game-main-content">
-                <canvas id="gameCanvas" width="600" height="400"></canvas>
+                <canvas id="gameCanvas" width="600" height="600"></canvas>
                 
-                <!-- 모바일 터치 조이스틱 -->
                 <div class="joystick-container">
                     <div id="joystickBase" class="joystick-base">
                         <div id="joystickStick" class="joystick-stick"></div>
@@ -452,7 +450,7 @@
         thunderStoneImg.src = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%23ffea00' opacity='0.25'/%3E%3Cpolygon points='50,6 88,26 92,68 50,94 8,68 12,26' fill='%23cc7a00' stroke='%23ffea00' stroke-width='4'/%3E%3Cpolygon points='50,12 82,30 85,64 50,88 15,64 18,30' fill='%23ff9900'/%3E%3Cpolygon points='50,12 50,88 85,64' fill='%23b36200' opacity='0.4'/%3E%3Cpolygon points='50,12 18,30 15,64' fill='%23ffbf00' opacity='0.5'/%3E%3Cpath d='M58,14 L28,50 L48,50 L38,86 L74,42 L52,42 Z' fill='%23ffffff' stroke='%23111111' stroke-width='3.5' stroke-linejoin='round'/%3E%3Cpath d='M56,17 L32,48 L48,48 L40,81 L70,44 L53,44 Z' fill='%23ffff00'/%3E%3C/svg%3E";
 
         const CANVAS_WIDTH = canvas ? canvas.width : 600;
-        const CANVAS_HEIGHT = canvas ? canvas.height : 400;
+        const CANVAS_HEIGHT = canvas ? canvas.height : 600;
         
         const BASE_SLOWPOKE_SPEED = 150;
         const BASE_MAGIKARP_SPEED = BASE_SLOWPOKE_SPEED * 0.5;
@@ -492,7 +490,6 @@
         let speedUpFlashTimer = 0;
         let speedUpFlashParticles = [];
 
-        // 터치 조이스틱 변수
         let joystickTouchId = null;
         let joystickVector = { x: 0, y: 0 };
         const joystickBase = document.getElementById("joystickBase");
@@ -970,7 +967,6 @@
                 updateProgressBar();
             }
 
-            // 생존 시간 40초 시 피카츄 속도 상향 이벤트
             if (survivalTime >= 40 && !isSpeedBoostedAt40) {
                 isSpeedBoostedAt40 = true;
                 pikachu.normalSpeed = pikachu.boostedSpeed;
@@ -998,7 +994,7 @@
                 pikachuThunderboltTriggered = true;
                 red = {
                     x: CANVAS_WIDTH + 100,
-                    y: CANVAS_HEIGHT / 2 + 75,
+                    y: CANVAS_HEIGHT / 2 + 100,
                     targetX: CANVAS_WIDTH - 70, 
                     drawWidth: 150, 
                     drawHeight: 150, 
@@ -1015,7 +1011,7 @@
                 alakazamTriggered = true;
                 red = {
                     x: CANVAS_WIDTH + 100,
-                    y: CANVAS_HEIGHT / 2 + 75,
+                    y: CANVAS_HEIGHT / 2 + 100,
                     targetX: CANVAS_WIDTH - 70, 
                     drawWidth: 150, 
                     drawHeight: 150, 
@@ -1027,7 +1023,7 @@
                 blastoiseTriggered = true;
                 red = {
                     x: CANVAS_WIDTH + 100,
-                    y: CANVAS_HEIGHT / 2 + 75,
+                    y: CANVAS_HEIGHT / 2 + 100,
                     targetX: CANVAS_WIDTH - 70, 
                     drawWidth: 150, 
                     drawHeight: 150, 
@@ -1040,7 +1036,7 @@
                 isPhase2 = true;
                 red = {
                     x: CANVAS_WIDTH + 100,
-                    y: CANVAS_HEIGHT / 2 + 75,
+                    y: CANVAS_HEIGHT / 2 + 100,
                     targetX: CANVAS_WIDTH - 70, 
                     drawWidth: 150, 
                     drawHeight: 150, 
@@ -1351,7 +1347,6 @@
             }
 
             if (!isGhostPhase && !isThunderboltActive && !isGameWon) {
-                // 야도란 최대 마리수를 기존 2/3 수준으로 감소 (기존 Math.min(20, 5 + Math.floor(survivalTime / 1.5)))
                 const targetSlowpokeCount = Math.floor(Math.min(20, 5 + Math.floor(survivalTime / 1.5)) * (2 / 3));
                 if (slowpokes.length < targetSlowpokeCount && Math.random() < 0.05) {
                     spawnSlowpoke();
@@ -1371,7 +1366,6 @@
                 dy *= Math.SQRT1_2;
             }
 
-            // 모바일 터치 조이스틱 입력 결합
             if (joystickVector.x !== 0 || joystickVector.y !== 0) {
                 dx = joystickVector.x;
                 dy = joystickVector.y;
