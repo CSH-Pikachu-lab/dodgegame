@@ -151,54 +151,31 @@
 
         .header-container {
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
             width: 600px;
             margin-bottom: 12px;
         }
 
-        .info {
+        .score-info {
             font-size: 18px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .invincible-text {
-            color: #ffee00;
-            text-shadow: 0 0 8px #ff8800;
-            font-size: 15px;
-            transition: opacity 0.05s ease;
-        }
-
-        .test-btn {
-            background: linear-gradient(135deg, #ff416c, #ff4b2b);
-            color: white;
-            border: 2px solid rgba(255, 255, 255, 0.8);
-            padding: 6px 14px;
-            font-size: 13px;
-            font-weight: bold;
-            border-radius: 20px;
-            cursor: pointer;
-            box-shadow: 0 0 10px rgba(255, 75, 43, 0.5);
-            transition: all 0.2s ease;
-        }
-
-        .test-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 15px rgba(255, 75, 43, 0.8);
-        }
-
-        .test-btn.active {
-            background: linear-gradient(135deg, #00b09b, #96c93d);
-            box-shadow: 0 0 12px rgba(150, 201, 61, 0.8);
+            font-weight: 800;
+            color: #ffd000;
+            text-shadow: 0 0 8px rgba(255, 208, 0, 0.4);
+            white-space: nowrap;
         }
 
         .controls-right {
             display: flex;
             align-items: center;
             gap: 12px;
+        }
+
+        .invincible-text {
+            color: #ffee00;
+            text-shadow: 0 0 8px #ff8800;
+            font-size: 14px;
+            transition: opacity 0.05s ease;
         }
 
         .lives-container {
@@ -313,13 +290,15 @@
 
         <div class="game-main">
             <div class="header-container">
-                <div class="info">
-                    <span>생존 시간: <strong id="score">0</strong>초</span>
-                    <span id="invincibleStatus" class="invincible-text" style="display: none;">⚡ 라이츄 진화 (무적)! ⚡</span>
+                <!-- 왼쪽 정렬: SCORE -->
+                <div class="score-info">
+                    SCORE: <span id="scoreText">0</span>
                 </div>
+
+                <!-- 오른쪽 정렬: 목숨 -->
                 <div class="controls-right">
+                    <span id="invincibleStatus" class="invincible-text" style="display: none;">⚡ 무적! ⚡</span>
                     <div id="livesContainer" class="lives-container" title="남은 목숨"></div>
-                    <button id="testBtn" class="test-btn">쫄?</button>
                 </div>
             </div>
 
@@ -338,9 +317,8 @@
     <script>
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas ? canvas.getContext("2d") : null;
-        const scoreElement = document.getElementById("score");
+        const scoreTextElement = document.getElementById("scoreText");
         const invincibleStatusElement = document.getElementById("invincibleStatus");
-        const testBtn = document.getElementById("testBtn");
         const livesContainer = document.getElementById("livesContainer");
 
         const progressBarFill = document.getElementById("progressBarFill");
@@ -349,31 +327,6 @@
         const node35 = document.getElementById("node-35");
         const node50 = document.getElementById("node-50");
         const node70 = document.getElementById("node-70");
-
-        let isTestInvincible = false;
-
-        if (testBtn) {
-            testBtn.addEventListener("click", () => {
-                isTestInvincible = !isTestInvincible;
-                if (isTestInvincible) {
-                    testBtn.classList.add("active");
-                    pikachu.isInvincible = true;
-                    if (invincibleStatusElement) {
-                        invincibleStatusElement.textContent = "🛡️ 무적 모드 활성화 중!";
-                        invincibleStatusElement.style.display = "inline";
-                        invincibleStatusElement.style.opacity = "1";
-                    }
-                } else {
-                    testBtn.classList.remove("active");
-                    pikachu.isInvincible = false;
-                    pikachu.invincibleTimer = 0;
-                    pikachu.speed = pikachu.normalSpeed;
-                    if (invincibleStatusElement) {
-                        invincibleStatusElement.style.display = "none";
-                    }
-                }
-            });
-        }
 
         let pikachuLoaded = false, raichuLoaded = false, charizardLoaded = false, redLoaded = false;
         let blastoiseLoaded = false, mewtwoLoaded = false, alakazamLoaded = false, oakLoaded = false;
@@ -562,6 +515,7 @@
 
         let startTime = Date.now();
         let survivalTime = 0;
+        let score = 0;
         let lastTime = 0;
 
         let pidgeotInterval = null;
@@ -576,12 +530,13 @@
 
         const keys = {};
 
+        // 피카츄 크기 1.2배 상향 적용 (size: 18 -> 21.6, drawWidth/drawHeight: 45 -> 54)
         const pikachu = {
             x: CANVAS_WIDTH / 2,
             y: CANVAS_HEIGHT / 2,
-            size: 18,
-            drawWidth: 45,
-            drawHeight: 45,
+            size: 21.6,
+            drawWidth: 54,
+            drawHeight: 54,
             normalSpeed: 210,
             boostedSpeed: 360,
             speed: 210,
@@ -672,7 +627,7 @@
                 n.el.classList.remove("active");
             });
 
-            if (nodes[currentActiveIndex] && nodes[currentActiveIndex].el) {
+            if (nodes[currentActiveIndex]?.el) {
                 nodes[currentActiveIndex].el.classList.add("active");
             }
         }
@@ -767,9 +722,9 @@
 
             if (isGhostPhase) {
                 type = 'jynx';
-                size = 23.4;
-                dWidth = 62.4;
-                dHeight = 62.4;
+                size = 35.1;
+                dWidth = 93.6;
+                dHeight = 93.6;
             } else if (isMidPhase) {
                 type = 'red_gyarados';
                 size = 37.18;
@@ -831,6 +786,14 @@
             } else if (isPhase2) { 
                 speed = BASE_ZAPDOS_SPEED * 1.1;
                 type = 'hooh';
+                size = 44; 
+                dWidth = 260; 
+                dHeight = 260;
+            } else {
+                type = 'hooh';
+                size = 44;
+                dWidth = 260;
+                dHeight = 260;
             }
 
             zapdoses.push({
@@ -912,6 +875,7 @@
             isSpeedBoostedAt40 = false;
 
             lives = 3;
+            score = 0;
             updateLivesUI();
 
             red = null;
@@ -951,19 +915,13 @@
             pikachu.y = CANVAS_HEIGHT / 2;
             pikachu.normalSpeed = 210;
             pikachu.speed = 210;
-            pikachu.isInvincible = isTestInvincible;
+            pikachu.isInvincible = false;
             pikachu.invincibleTimer = 0;
             pikachu.hitInvincibleTimer = 0;
 
             if (invincibleStatusElement) {
-                if (isTestInvincible) {
-                    invincibleStatusElement.textContent = "🛡️ 무적 모드 활성화 중!";
-                    invincibleStatusElement.style.display = "inline";
-                    invincibleStatusElement.style.opacity = "1";
-                } else {
-                    invincibleStatusElement.style.display = "none";
-                    invincibleStatusElement.style.opacity = "1";
-                }
+                invincibleStatusElement.style.display = "none";
+                invincibleStatusElement.style.opacity = "1";
             }
 
             startTime = Date.now();
@@ -983,8 +941,14 @@
             if (isNaN(dt) || dt > 0.1) dt = 0.016;
 
             if (!isThunderboltActive && !isGameWon) {
-                survivalTime = Math.floor((Date.now() - startTime) / 1000);
-                if (scoreElement) scoreElement.textContent = survivalTime;
+                const elapsedMs = Date.now() - startTime;
+                survivalTime = Math.floor(elapsedMs / 1000);
+                
+                // 0.1초당 1점씩 반영 (100ms당 1점)
+                score = Math.floor(elapsedMs / 100);
+                
+                if (scoreTextElement) scoreTextElement.textContent = score;
+
                 updateProgressBar();
             }
 
@@ -1306,7 +1270,7 @@
                 if (fp.life <= 0) fireParticles.splice(i, 1);
             }
 
-            if (pikachu.isInvincible || isTestInvincible) {
+            if (pikachu.isInvincible) {
                 for (let i = 0; i < 3; i++) {
                     const angle = Math.random() * Math.PI * 2;
                     const dist = 8 + Math.random() * 20;
@@ -1347,7 +1311,7 @@
                 if (pikachu.hitInvincibleTimer < 0) pikachu.hitInvincibleTimer = 0;
             }
 
-            if (pikachu.isInvincible && !isTestInvincible) {
+            if (pikachu.isInvincible) {
                 pikachu.invincibleTimer -= dt;
 
                 if (invincibleStatusElement) {
@@ -1414,9 +1378,7 @@
                     pikachu.invincibleTimer = 4.0;
                     pikachu.speed = pikachu.boostedSpeed;
                     if (invincibleStatusElement) {
-                        if (!isTestInvincible) {
-                            invincibleStatusElement.textContent = "⚡ 라이츄 진화 (무적)! ⚡";
-                        }
+                        invincibleStatusElement.textContent = "⚡ 라이츄 진화 (무적)! ⚡";
                         invincibleStatusElement.style.display = "inline";
                         invincibleStatusElement.style.opacity = "1";
                     }
@@ -1424,7 +1386,7 @@
             }
 
             const checkCollision = (target) => {
-                if (pikachu.isInvincible || isTestInvincible || pikachu.hitInvincibleTimer > 0) return false;
+                if (pikachu.isInvincible || pikachu.hitInvincibleTimer > 0) return false;
                 if (isPsychicActive || isThunderboltActive || isGameWon) return false;
                 return Math.hypot(pikachu.x - target.x, pikachu.y - target.y) < pikachu.size + target.size;
             };
@@ -1772,28 +1734,28 @@
                 ctx.restore();
             }
 
-            if (pikachu.isInvincible || isTestInvincible) {
-                const shouldDrawField = isTestInvincible || pikachu.invincibleTimer > 1.5 || (Math.floor(pikachu.invincibleTimer * 12) % 2 === 0);
+            if (pikachu.isInvincible) {
+                const shouldDrawField = pikachu.invincibleTimer > 1.5 || (Math.floor(pikachu.invincibleTimer * 12) % 2 === 0);
                 if (shouldDrawField) {
                     drawElectricField(pikachu.x, pikachu.y);
                 }
             }
 
             ctx.save();
-            if (pikachu.hitInvincibleTimer > 0 && !pikachu.isInvincible && !isTestInvincible) {
+            if (pikachu.hitInvincibleTimer > 0 && !pikachu.isInvincible) {
                 const isFlickerVisible = Math.floor(pikachu.hitInvincibleTimer * 14) % 2 === 0;
                 ctx.globalAlpha = isFlickerVisible ? 0.3 : 1.0;
             }
 
-            const isCurrentRaichu = pikachu.isInvincible || isTestInvincible;
+            const isCurrentRaichu = pikachu.isInvincible;
             const activePlayerImg = isCurrentRaichu ? (raichuLoaded ? raichuImg : pikachuImg) : (pikachuLoaded ? pikachuImg : null);
             if (activePlayerImg) {
-                const w = isCurrentRaichu ? 50 : pikachu.drawWidth;
-                const h = isCurrentRaichu ? 50 : pikachu.drawHeight;
+                const w = isCurrentRaichu ? 60 : pikachu.drawWidth;
+                const h = isCurrentRaichu ? 60 : pikachu.drawHeight;
                 ctx.drawImage(activePlayerImg, pikachu.x - w / 2, pikachu.y - h / 2, w, h);
             } else {
                 ctx.fillStyle = "#ffffff";
-                ctx.font = "28px sans-serif";
+                ctx.font = "34px sans-serif";
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
                 ctx.fillText(isCurrentRaichu ? "⚡🐭" : "⚡", pikachu.x, pikachu.y);
@@ -1870,6 +1832,7 @@
                     let fontSize = "32px";
                     if (z.type === 'oak' || z.type === 'snorlax') fontSize = "96px";
                     else if (z.type === 'mewtwo') fontSize = "52px";
+                    else if (z.type === 'hooh') fontSize = "64px";
                     ctx.font = fontSize + " sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
                     ctx.fillText(emoji, z.x, z.y);
                 }
@@ -1944,11 +1907,11 @@
                 ctx.textAlign = "center"; ctx.textBaseline = "middle";
                 ctx.fillText("GAME OVER", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 35);
 
-                ctx.fillStyle = "#FFF";
-                ctx.font = "18px sans-serif";
-                ctx.fillText(`기록: ${survivalTime}초`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 5);
+                ctx.fillStyle = "#FFDD00";
+                ctx.font = "bold 24px sans-serif";
+                ctx.fillText(`최종 점수: ${score} 점`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 15);
 
-                drawRestartButton(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 55, "🔄 'R' 키로 다시 시작");
+                drawRestartButton(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 75, "🔄 'R' 키로 다시 시작");
             }
 
             if (isGameWon) {
@@ -1960,14 +1923,18 @@
                 ctx.shadowBlur = 20;
                 ctx.font = "bold 40px sans-serif";
                 ctx.textAlign = "center"; ctx.textBaseline = "middle";
-                ctx.fillText("⚡ 생존완료 ⚡", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 50);
+                ctx.fillText("⚡ 생존완료 ⚡", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 60);
 
                 ctx.shadowBlur = 0;
                 ctx.fillStyle = "#FFFFFF";
-                ctx.font = "bold 20px sans-serif";
-                ctx.fillText("모든 시련을 극복하고 완벽하게 생존했습니다!", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+                ctx.font = "bold 18px sans-serif";
+                ctx.fillText("모든 시련을 극복하고 완벽하게 생존했습니다!", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 15);
 
-                drawRestartButton(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 65, "🔄 'R' 키로 다시 도전");
+                ctx.fillStyle = "#FFDD00";
+                ctx.font = "bold 24px sans-serif";
+                ctx.fillText(`최종 점수: ${score} 점`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 20);
+
+                drawRestartButton(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 80, "🔄 'R' 키로 다시 도전");
             }
         }
 
