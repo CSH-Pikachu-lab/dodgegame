@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>피카츄살리기</title>
+    <title>피카츄 살리기</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -806,7 +806,8 @@
             if (isThunderboltActive) return;
             const { spawnX, spawnY } = getSpawnPosition();
             const angle = Math.atan2(pikachu.y - spawnY, pikachu.x - spawnX);
-            const speed = BASE_SLOWPOKE_SPEED;
+            // 미뇽, 신뇽, 망나뇽 속도 1.2배 적용
+            const speed = BASE_SLOWPOKE_SPEED * 1.2;
 
             dragons.push({
                 x: spawnX,
@@ -1027,10 +1028,10 @@
             zapdoses = [];
             ghosts = [];
 
-            // 기존 250ms에서 야돈킹 수치에 맞춰 1000ms(1초)로 수정하여 최적화
+            // 10종의 랜덤 장애물 생성 주기를 500ms로 수정
             infiniteObstacleInterval = setInterval(() => {
                 if (!isGameOver) spawnInfiniteRandomObstacle();
-            }, 1000);
+            }, 500);
 
             thunderStoneInterval = setInterval(() => {
                 if (!isGameOver) spawnThunderStone();
