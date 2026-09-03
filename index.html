@@ -379,8 +379,8 @@
         let blastoiseLoaded = false, mewtwoLoaded = false, alakazamLoaded = false, oakLoaded = false;
         let slowpokeLoaded = false, slowkingLoaded = false, slowbroLoaded = false;
         let magikarpLoaded = false, mewLoaded = false;
-        let pidgeotLoaded = false, gyaradosLoaded = false, redGyaradosLoaded = false, caterpieLoaded = false;
-        let zapdosLoaded = false, hoohLoaded = false, articunoLoaded = false, weedleLoaded = false;
+        let pidgeotLoaded = false, gyaradosLoaded = false, redGyaradosLoaded = false, jynxLoaded = false, snorlaxLoaded = false;
+        let zapdosLoaded = false, hoohLoaded = false, articunoLoaded = false;
         let gastlyLoaded = false, haunterLoaded = false, gengarLoaded = false;
         let thunderStoneLoaded = false;
 
@@ -427,12 +427,12 @@
                 redGyaradosImg.onload = () => redGyaradosLoaded = true;
             }
         );
-        const caterpieImg = loadImage(`${BASE_CDN}10.png`, () => caterpieLoaded = true);
+        const jynxImg = loadImage(`${BASE_CDN}124.png`, () => jynxLoaded = true);
+        const snorlaxImg = loadImage(`${BASE_CDN}143.png`, () => snorlaxLoaded = true);
 
         const zapdosImg = loadImage(`${BASE_CDN}145.png`, () => zapdosLoaded = true);
         const hoohImg = loadImage(`${BASE_CDN}250.png`, () => hoohLoaded = true);
         const articunoImg = loadImage(`${BASE_CDN}144.png`, () => articunoLoaded = true);
-        const weedleImg = loadImage(`${BASE_CDN}13.png`, () => weedleLoaded = true);
         const gastlyImg = loadImage(`${BASE_CDN}92.png`, () => gastlyLoaded = true);
         const haunterImg = loadImage(`${BASE_CDN}93.png`, () => haunterLoaded = true);
         const gengarImg = loadImage(`${BASE_CDN}94.png`, () => gengarLoaded = true);
@@ -745,20 +745,20 @@
             let dHeight = 55;
 
             if (isGhostPhase) {
-                type = 'caterpie';
+                type = 'jynx';
                 size = 18;
                 dWidth = 48;
                 dHeight = 48;
             } else if (isMidPhase) {
                 type = 'red_gyarados';
-                size = 22;
-                dWidth = 66;
-                dHeight = 66;
+                size = 28.6;
+                dWidth = 85.8;
+                dHeight = 85.8;
             } else if (isPhase2) {
                 type = 'gyarados';
-                size = 22;
-                dWidth = 66;
-                dHeight = 66;
+                size = 28.6;
+                dWidth = 85.8;
+                dHeight = 85.8;
             }
 
             pidgeots.push({
@@ -799,11 +799,11 @@
                     dHeight = 104.4;
                 }
             } else if (isGhostPhase) {
-                speed = BASE_ZAPDOS_SPEED * 1.1;
-                type = 'weedle';
-                size = 20;
-                dWidth = 50;
-                dHeight = 50;
+                speed = BASE_MAGIKARP_SPEED;
+                type = 'snorlax';
+                size = 66;
+                dWidth = 195;
+                dHeight = 195;
             } else if (isMidPhase) {
                 speed = BASE_ZAPDOS_SPEED * 1.1;
                 type = 'articuno';
@@ -1783,7 +1783,7 @@
 
             pidgeots.forEach(p => {
                 let img = null, emoji = "🦅";
-                if (p.type === 'caterpie') { img = caterpieLoaded ? caterpieImg : null; emoji = "🐛"; }
+                if (p.type === 'jynx') { img = jynxLoaded ? jynxImg : null; emoji = "👄"; }
                 else if (p.type === 'red_gyarados') { img = redGyaradosLoaded ? redGyaradosImg : null; emoji = "🔴🐉"; }
                 else if (p.type === 'gyarados') { img = gyaradosLoaded ? gyaradosImg : null; emoji = "🐉"; }
                 else { img = pidgeotLoaded ? pidgeotImg : null; }
@@ -1800,7 +1800,7 @@
                 let img = null, emoji = "⚡🦅";
                 if (z.type === 'mewtwo') { img = mewtwoLoaded ? mewtwoImg : null; emoji = "🧬🐱"; }
                 else if (z.type === 'oak') { img = oakLoaded ? oakImg : null; emoji = "👴🏻🔬"; }
-                else if (z.type === 'weedle') { img = weedleLoaded ? weedleImg : null; emoji = "🐛⚡"; }
+                else if (z.type === 'snorlax') { img = snorlaxLoaded ? snorlaxImg : null; emoji = "😴🐻"; }
                 else if (z.type === 'articuno') { img = articunoLoaded ? articunoImg : null; emoji = "❄️🦅"; }
                 else if (z.type === 'hooh') { img = hoohLoaded ? hoohImg : null; emoji = "🌈🦅"; }
                 else { img = zapdosLoaded ? zapdosImg : null; }
@@ -1810,7 +1810,7 @@
                 } else {
                     ctx.fillStyle = "#ffffff";
                     let fontSize = "32px";
-                    if (z.type === 'oak') fontSize = "96px";
+                    if (z.type === 'oak' || z.type === 'snorlax') fontSize = "96px";
                     else if (z.type === 'mewtwo') fontSize = "52px";
                     ctx.font = fontSize + " sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
                     ctx.fillText(emoji, z.x, z.y);
@@ -1907,10 +1907,6 @@
                 ctx.fillStyle = "#FFFFFF";
                 ctx.font = "bold 20px sans-serif";
                 ctx.fillText("모든 시련을 극복하고 완벽하게 생존했습니다!", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 10);
-
-                ctx.fillStyle = "#A8FFB2";
-                ctx.font = "17px sans-serif";
-                ctx.fillText(`최종 기록: ${survivalTime}초 (클리어)`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 45);
 
                 ctx.fillStyle = "#DDDDDD";
                 ctx.font = "15px sans-serif";
