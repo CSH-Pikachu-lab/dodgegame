@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>피카츄살리기</title>
+    <title>피카츄의 생존일기(지우는나의친구)</title>
     <style>
         * {
             box-sizing: border-box;
@@ -683,7 +683,7 @@
 
             if (isBlastoiseEventFinished && !isGhostPhase) {
                 type = 'slowking';
-                sizeMult = 1.56; // 기존 1.3의 20% 증가
+                sizeMult = 1.56; 
             } else if (isCharizardEventFinished) {
                 type = 'slowbro';
                 sizeMult = 1.2;
@@ -797,9 +797,9 @@
                     dHeight = 195; 
                 } else {
                     type = 'mewtwo';
-                    size = 34.8; // 기존 29의 20% 증가
-                    dWidth = 104.4; // 기존 87의 20% 증가
-                    dHeight = 104.4; // 기존 87의 20% 증가
+                    size = 34.8;
+                    dWidth = 104.4;
+                    dHeight = 104.4;
                 }
             } else if (isGhostPhase) {
                 speed = BASE_ZAPDOS_SPEED * 1.1;
@@ -1351,7 +1351,8 @@
             }
 
             if (!isGhostPhase && !isThunderboltActive && !isGameWon) {
-                const targetSlowpokeCount = Math.min(20, 5 + Math.floor(survivalTime / 1.5));
+                // 야도란 최대 마리수를 기존 2/3 수준으로 감소 (기존 Math.min(20, 5 + Math.floor(survivalTime / 1.5)))
+                const targetSlowpokeCount = Math.floor(Math.min(20, 5 + Math.floor(survivalTime / 1.5)) * (2 / 3));
                 if (slowpokes.length < targetSlowpokeCount && Math.random() < 0.05) {
                     spawnSlowpoke();
                 }
@@ -1816,7 +1817,7 @@
                     ctx.fillStyle = "#ffffff";
                     let fontSize = "32px";
                     if (z.type === 'oak') fontSize = "96px";
-                    else if (z.type === 'mewtwo') fontSize = "52px"; // 이모지 대체 텍스트 크기 상향
+                    else if (z.type === 'mewtwo') fontSize = "52px";
                     ctx.font = fontSize + " sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
                     ctx.fillText(emoji, z.x, z.y);
                 }
