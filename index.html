@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>피카츄의 생존일기 (무한 모드)</title>
+    <title>피카츄 살리기</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -995,7 +995,7 @@
             if (isThunderboltActive || isInfiniteMode) return;
             const { spawnX, spawnY } = getSpawnPosition();
             const angle = Math.atan2(pikachu.y - spawnY, pikachu.x - spawnX);
-            const speed = BASE_ZAPDOS_SPEED * 0.95;
+            const speed = BASE_ZAPDOS_SPEED * 0.9;
             const r = Math.random();
             let type = 'gastly';
             let size = 20;
