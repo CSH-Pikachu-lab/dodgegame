@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>피카츄 살리기</title>
+    <title>피카츄의 생존일기 (무한 모드)</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -588,9 +588,23 @@
         }
 
         let startTime = Date.now();
+        let totalPausedTime = 0;
+        let pauseStartTime = 0;
         let survivalTime = 0;
         let score = 0;
         let lastTime = 0;
+
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden) {
+                pauseStartTime = Date.now();
+            } else {
+                if (pauseStartTime > 0) {
+                    totalPausedTime += (Date.now() - pauseStartTime);
+                    pauseStartTime = 0;
+                }
+                lastTime = performance.now();
+            }
+        });
 
         let pidgeotInterval = null;
         let zapdosInterval = null;
@@ -981,7 +995,7 @@
             if (isThunderboltActive || isInfiniteMode) return;
             const { spawnX, spawnY } = getSpawnPosition();
             const angle = Math.atan2(pikachu.y - spawnY, pikachu.x - spawnX);
-            const speed = BASE_ZAPDOS_SPEED * 1.1;
+            const speed = BASE_ZAPDOS_SPEED * 0.95;
             const r = Math.random();
             let type = 'gastly';
             let size = 20;
@@ -1011,15 +1025,15 @@
         function startSpecialTimers() {
             clearAllTimers();
 
-            pidgeotInterval = setInterval(() => { if (!isGameOver && !isInfiniteMode) spawnPidgeot(); }, 7000);
-            magikarpInterval = setInterval(() => { if (!isGameOver && !isInfiniteMode) spawnMagikarp(); }, 15000);
-            zapdosInterval = setInterval(() => { if (!isGameOver && !isInfiniteMode) spawnZapdos(); }, 19000);
+            pidgeotInterval = setInterval(() => { if (!isGameOver && !isInfiniteMode && !document.hidden) spawnPidgeot(); }, 7000);
+            magikarpInterval = setInterval(() => { if (!isGameOver && !isInfiniteMode && !document.hidden) spawnMagikarp(); }, 15000);
+            zapdosInterval = setInterval(() => { if (!isGameOver && !isInfiniteMode && !document.hidden) spawnZapdos(); }, 19000);
 
             thunderStoneTimeout = setTimeout(() => {
                 if (!isGameOver) {
-                    spawnThunderStone();
+                    if (!document.hidden) spawnThunderStone();
                     thunderStoneInterval = setInterval(() => {
-                        if (!isGameOver) spawnThunderStone();
+                        if (!isGameOver && !document.hidden) spawnThunderStone();
                     }, isInfiniteMode ? 12000 : 8000);
                 }
             }, 8000);
@@ -1052,36 +1066,36 @@
             ghosts = [];
 
             infiniteObstacleInterval = setInterval(() => {
-                if (!isGameOver) spawnInfiniteRandomObstacle();
+                if (!isGameOver && !document.hidden) spawnInfiniteRandomObstacle();
             }, 500);
 
             thunderStoneInterval = setInterval(() => {
-                if (!isGameOver) spawnThunderStone();
+                if (!isGameOver && !document.hidden) spawnThunderStone();
             }, 12000);
 
             // 무한모드 진입 35초 후 프리져, 썬더, 파이어 3초에 한번씩 등장 시작
             setTimeout(() => {
                 if (!isGameOver && isInfiniteMode) {
                     legendaryBirdsInterval = setInterval(() => {
-                        if (!isGameOver && isInfiniteMode) spawnLegendaryBird();
+                        if (!isGameOver && isInfiniteMode && !document.hidden) spawnLegendaryBird();
                     }, 3000);
                 }
             }, 35000);
 
             swimmerTimeout = setTimeout(() => {
-                if (!isGameOver) spawnSwimmerObstacles();
+                if (!isGameOver && !document.hidden) spawnSwimmerObstacles();
             }, 10000);
 
             dratiniTimeout = setTimeout(() => {
-                if (!isGameOver) spawnDragonObstacle('dratini');
+                if (!isGameOver && !document.hidden) spawnDragonObstacle('dratini');
             }, 20000);
 
             dragonairTimeout = setTimeout(() => {
-                if (!isGameOver) spawnDragonObstacle('dragonair');
+                if (!isGameOver && !document.hidden) spawnDragonObstacle('dragonair');
             }, 25000);
 
             dragoniteTimeout = setTimeout(() => {
-                if (!isGameOver) spawnDragonObstacle('dragonite');
+                if (!isGameOver && !document.hidden) spawnDragonObstacle('dragonite');
             }, 30000);
         }
 
@@ -1152,6 +1166,8 @@
             }
 
             startTime = Date.now();
+            totalPausedTime = 0;
+            pauseStartTime = 0;
             lastTime = performance.now();
             updateProgressBar();
             startSpecialTimers();
@@ -1165,10 +1181,12 @@
             let dt = (currentTime - lastTime) / 1000;
             lastTime = currentTime;
 
+            if (document.hidden) return;
+
             if (isNaN(dt) || dt > 0.1) dt = 0.016;
 
             if (!isThunderboltActive) {
-                const elapsedMs = Date.now() - startTime;
+                const elapsedMs = Date.now() - startTime - totalPausedTime;
                 survivalTime = Math.floor(elapsedMs / 1000);
                 
                 score = Math.floor(elapsedMs / 100);
@@ -1477,7 +1495,7 @@
                     isPsychicActive = false;
                     if (!isGhostPhase) {
                         isGhostPhase = true;
-                        ghostInterval = setInterval(() => { if (!isGameOver && !isInfiniteMode) spawnGhost(); }, 500);
+                        ghostInterval = setInterval(() => { if (!isGameOver && !isInfiniteMode && !document.hidden) spawnGhost(); }, 500);
                     }
                 }
             }
