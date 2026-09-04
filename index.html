@@ -355,18 +355,20 @@
         let thunderStoneLoaded = false;
         let swimmerf2Loaded = false, swimmerLoaded = false;
         let dratiniLoaded = false, dragonairLoaded = false, dragoniteLoaded = false;
+        let laprasLoaded = false;
 
         const newObstacleImgs = {};
+        // 또가스 -> 망키(#56), 라프라스 -> 독파리(#73)로 변경
         const newObstacleList = [
             { id: 39, name: 'jigglypuff', emoji: '🎤' },
             { id: 50, name: 'diglett', emoji: '🕳️' },
             { id: 52, name: 'meowth', emoji: '🐱' },
+            { id: 56, name: 'mankey', emoji: '🐒' },
+            { id: 73, name: 'tentacruel', emoji: '🦑' },
             { id: 78, name: 'rapidash', emoji: '🦄' },
             { id: 104, name: 'cubone', emoji: '🦴' },
             { id: 108, name: 'lickitung', emoji: '👅' },
-            { id: 109, name: 'koffing', emoji: '💣' },
             { id: 111, name: 'rhyhorn', emoji: '🦏' },
-            { id: 131, name: 'lapras', emoji: '🦕' },
             { id: 132, name: 'ditto', emoji: '🫠' }
         ];
 
@@ -418,6 +420,7 @@
         const dratiniImg = loadImage(`${BASE_CDN}147.png`, () => dratiniLoaded = true);
         const dragonairImg = loadImage(`${BASE_CDN}148.png`, () => dragonairLoaded = true);
         const dragoniteImg = loadImage(`${BASE_CDN}149.png`, () => dragoniteLoaded = true);
+        const laprasImg = loadImage(`${BASE_CDN}131.png`, () => laprasLoaded = true);
 
         const slowpokeImg = loadImage(`${BASE_CDN}79.png`, () => slowpokeLoaded = true);
         const slowkingImg = loadImage(`${BASE_CDN}199.png`, () => slowkingLoaded = true);
@@ -613,7 +616,8 @@
         let thunderStoneInterval = null;
         let ghostInterval = null;
         let infiniteObstacleInterval = null;
-        let legendaryBirdsInterval = null; // 무한모드 35초 후 프리져, 썬더, 파이어 스폰 타이머
+        let legendaryBirdsInterval = null;
+        let laprasInterval = null; // 무한모드 10초 주기 라프라스 스폰 타이머
         
         let swimmerTimeout = null;
         let dratiniTimeout = null;
@@ -792,13 +796,31 @@
             });
         }
 
-        // 무한 모드 진입 35초 후 프리져, 썬더, 파이어를 뮤츠 크기 및 속도로 3초마다 랜덤 스폰
+        // 무한모드 전용: 10초마다 라프라스 스폰
+        function spawnLapras() {
+            if (isThunderboltActive || !isInfiniteMode) return;
+            const { spawnX, spawnY } = getSpawnPosition();
+            const angle = Math.atan2(pikachu.y - spawnY, pikachu.x - spawnX);
+            const speed = BASE_SLOWPOKE_SPEED * 1.1;
+
+            infiniteObstacles.push({
+                x: spawnX,
+                y: spawnY,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                size: 25,
+                drawWidth: 68,
+                drawHeight: 68,
+                name: 'lapras',
+                emoji: '🦕'
+            });
+        }
+
         function spawnLegendaryBird() {
             if (isThunderboltActive || !isInfiniteMode) return;
             const { spawnX, spawnY } = getSpawnPosition();
             const angle = Math.atan2(pikachu.y - spawnY, pikachu.x - spawnX);
             
-            // 뮤츠와 동일한 속도(BASE_ZAPDOS_SPEED * 1.1) 및 사이즈(size: 34.8, drawWidth: 104.4, drawHeight: 104.4)
             const speed = BASE_ZAPDOS_SPEED * 1.1;
             const size = 34.8;
             const dWidth = 104.4;
@@ -1048,6 +1070,7 @@
             if (ghostInterval) clearInterval(ghostInterval);
             if (infiniteObstacleInterval) clearInterval(infiniteObstacleInterval);
             if (legendaryBirdsInterval) clearInterval(legendaryBirdsInterval);
+            if (laprasInterval) clearInterval(laprasInterval);
             
             if (swimmerTimeout) clearTimeout(swimmerTimeout);
             if (dratiniTimeout) clearTimeout(dratiniTimeout);
@@ -1069,11 +1092,15 @@
                 if (!isGameOver && !document.hidden) spawnInfiniteRandomObstacle();
             }, 500);
 
+            // 무한모드 진입 후 10초마다 라프라스 등장
+            laprasInterval = setInterval(() => {
+                if (!isGameOver && isInfiniteMode && !document.hidden) spawnLapras();
+            }, 10000);
+
             thunderStoneInterval = setInterval(() => {
                 if (!isGameOver && !document.hidden) spawnThunderStone();
             }, 12000);
 
-            // 무한모드 진입 35초 후 프리져, 썬더, 파이어 3초에 한번씩 등장 시작
             setTimeout(() => {
                 if (!isGameOver && isInfiniteMode) {
                     legendaryBirdsInterval = setInterval(() => {
@@ -2125,9 +2152,16 @@
             });
 
             infiniteObstacles.forEach(obs => {
-                const targetObj = newObstacleImgs[obs.name];
-                if (targetObj && targetObj.loaded && targetObj.img) {
-                    ctx.drawImage(targetObj.img, obs.x - obs.drawWidth / 2, obs.y - obs.drawHeight / 2, obs.drawWidth, obs.drawHeight);
+                let imgToDraw = null;
+                if (obs.name === 'lapras') {
+                    imgToDraw = laprasLoaded ? laprasImg : null;
+                } else {
+                    const targetObj = newObstacleImgs[obs.name];
+                    if (targetObj && targetObj.loaded) imgToDraw = targetObj.img;
+                }
+
+                if (imgToDraw) {
+                    ctx.drawImage(imgToDraw, obs.x - obs.drawWidth / 2, obs.y - obs.drawHeight / 2, obs.drawWidth, obs.drawHeight);
                 } else {
                     ctx.fillStyle = "#ffffff";
                     ctx.font = "34px sans-serif";
