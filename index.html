@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>피카츄 살리기</title>
+    <title>피카츄 살리기 - BGM & 효과음</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -166,7 +166,30 @@
         .controls-right {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+        }
+
+        .audio-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffd000;
+            padding: 4px 10px;
+            border-radius: 14px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .audio-btn:hover {
+            background: rgba(255, 208, 0, 0.2);
+            border-color: #ffd000;
+        }
+
+        .audio-btn.muted {
+            color: #8b949e;
+            border-color: #484f58;
+            background: rgba(0,0,0,0.3);
         }
 
         .invincible-text {
@@ -213,6 +236,7 @@
             flex-direction: column;
             align-items: center;
             gap: 12px;
+            margin-top: 10px;
         }
 
         .god-mode-btn {
@@ -309,6 +333,8 @@
                 </div>
 
                 <div class="controls-right">
+                    <button id="bgmToggleBtn" class="audio-btn">🎵 BGM ON</button>
+                    <button id="sfxToggleBtn" class="audio-btn">🔊 SFX ON</button>
                     <span id="invincibleStatus" class="invincible-text" style="display: none;">⚡ 무적! ⚡</span>
                     <div id="livesContainer" class="lives-container" title="남은 목숨"></div>
                 </div>
@@ -331,12 +357,294 @@
     </div>
 
     <script>
+        let audioCtx = null;
+        let isBGMEnabled = true;
+        let isSFXEnabled = true;
+        let bgmTimer = null;
+        let bgmStep = 0;
+
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) {
+                    audioCtx = new AudioContext();
+                }
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        // 피카츄 배구 스타일 신나는 레트로 8비트 BGM 시퀀서 (C Major/Pentatonic Upbeat Chiptune)
+        const bgmMelody = [
+            // 마디 1-2: 신나는 메인 테마 (피카츄 배구 느낌의 빠른 템포)
+            261.63, 329.63, 392.00, 523.25, 392.00, 329.63, 261.63, 392.00,
+            293.66, 349.23, 440.00, 587.33, 440.00, 349.23, 293.66, 440.00,
+            329.63, 392.00, 493.88, 659.25, 493.88, 392.00, 329.63, 493.88,
+            261.63, 329.63, 392.00, 523.25, 659.25, 587.33, 523.25, 392.00,
+            // 마디 3-4: 바운스 리듬
+            523.25, 523.25, 0,       523.25, 587.33, 659.25, 523.25, 392.00,
+            440.00, 440.00, 0,       440.00, 523.25, 587.33, 440.00, 349.23,
+            392.00, 523.25, 659.25, 783.99, 659.25, 523.25, 392.00, 329.63,
+            293.66, 349.23, 392.00, 440.00, 493.88, 523.25, 587.33, 659.25
+        ];
+
+        const bgmBass = [
+            130.81, 130.81, 196.00, 130.81, 146.83, 146.83, 220.00, 146.83,
+            164.81, 164.81, 246.94, 164.81, 130.81, 130.81, 196.00, 130.81,
+            130.81, 196.00, 130.81, 196.00, 146.83, 220.00, 146.83, 220.00,
+            164.81, 246.94, 164.81, 246.94, 130.81, 130.81, 196.00, 261.63
+        ];
+
+        function playBGMStep() {
+            if (!isBGMEnabled || !audioCtx || isGameOver) return;
+
+            const now = audioCtx.currentTime;
+            const noteIndex = bgmStep % bgmMelody.length;
+            const bassIndex = bgmStep % bgmBass.length;
+
+            const freq = bgmMelody[noteIndex];
+            const bassFreq = bgmBass[bassIndex];
+
+            // Melodic Lead (Square wave for retro 8-bit sound)
+            if (freq > 0) {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(freq, now);
+
+                gain.gain.setValueAtTime(0.04, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.12);
+            }
+
+            // Bassline (Triangle wave)
+            if (bassFreq > 0) {
+                const bassOsc = audioCtx.createOscillator();
+                const bassGain = audioCtx.createGain();
+                bassOsc.type = 'triangle';
+                bassOsc.frequency.setValueAtTime(bassFreq, now);
+
+                bassGain.gain.setValueAtTime(0.07, now);
+                bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.13);
+
+                bassOsc.connect(bassGain);
+                bassGain.connect(audioCtx.destination);
+
+                bassOsc.start(now);
+                bassOsc.stop(now + 0.14);
+            }
+
+            bgmStep = (bgmStep + 1) % bgmMelody.length;
+        }
+
+        function startBGM() {
+            if (bgmTimer) clearInterval(bgmTimer);
+            bgmStep = 0;
+            // 피카츄 배구 특유의 신나는 템포 (~135ms per note)
+            bgmTimer = setInterval(playBGMStep, 135);
+        }
+
+        function stopBGM() {
+            if (bgmTimer) {
+                clearInterval(bgmTimer);
+                bgmTimer = null;
+            }
+        }
+
+        function playClickSFX() {
+            if (!isSFXEnabled || !audioCtx) return;
+            initAudio();
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(800, now);
+            osc.frequency.exponentialRampToValueAtTime(400, now + 0.05);
+
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.05);
+        }
+
+        function playHitSFX() {
+            if (!isSFXEnabled || !audioCtx) return;
+            initAudio();
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(160, now);
+            osc.frequency.exponentialRampToValueAtTime(40, now + 0.2);
+
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.2);
+        }
+
+        function playThunderStoneSFX() {
+            if (!isSFXEnabled || !audioCtx) return;
+            initAudio();
+            const now = audioCtx.currentTime;
+            const freqs = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+            freqs.forEach((f, idx) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(f, now + idx * 0.05);
+
+                gain.gain.setValueAtTime(0.08, now + idx * 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.05 + 0.1);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now + idx * 0.05);
+                osc.stop(now + idx * 0.05 + 0.1);
+            });
+        }
+
+        function playThunderboltSFX() {
+            if (!isSFXEnabled || !audioCtx) return;
+            initAudio();
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(120, now);
+            osc.frequency.linearRampToValueAtTime(1200, now + 0.3);
+            osc.frequency.exponentialRampToValueAtTime(200, now + 0.6);
+
+            gain.gain.setValueAtTime(0.15, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.6);
+        }
+
+        function playFireBlastSFX() {
+            if (!isSFXEnabled || !audioCtx) return;
+            initAudio();
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(100, now);
+            osc.frequency.linearRampToValueAtTime(300, now + 0.2);
+            osc.frequency.exponentialRampToValueAtTime(50, now + 0.5);
+
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.5);
+        }
+
+        function playHydroPumpSFX() {
+            if (!isSFXEnabled || !audioCtx) return;
+            initAudio();
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(300, now);
+            osc.frequency.linearRampToValueAtTime(800, now + 0.15);
+            osc.frequency.linearRampToValueAtTime(200, now + 0.4);
+
+            gain.gain.setValueAtTime(0.18, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.4);
+        }
+
+        function playPsychicSFX() {
+            if (!isSFXEnabled || !audioCtx) return;
+            initAudio();
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(900, now);
+            osc.frequency.exponentialRampToValueAtTime(300, now + 0.5);
+
+            gain.gain.setValueAtTime(0.12, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.5);
+        }
+
+        function playSpeedUpSFX() {
+            if (!isSFXEnabled || !audioCtx) return;
+            initAudio();
+            const now = audioCtx.currentTime;
+            const freqs = [300, 450, 600, 900, 1200];
+            freqs.forEach((f, idx) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(f, now + idx * 0.04);
+
+                gain.gain.setValueAtTime(0.08, now + idx * 0.04);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.04 + 0.08);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now + idx * 0.04);
+                osc.stop(now + idx * 0.04 + 0.08);
+            });
+        }
+
+        function playGameOverSFX() {
+            if (!isSFXEnabled || !audioCtx) return;
+            initAudio();
+            const now = audioCtx.currentTime;
+            const notes = [400, 350, 300, 250, 180];
+            notes.forEach((n, idx) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(n, now + idx * 0.12);
+
+                gain.gain.setValueAtTime(0.12, now + idx * 0.12);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.12 + 0.15);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now + idx * 0.12);
+                osc.stop(now + idx * 0.12 + 0.15);
+            });
+        }
+
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas ? canvas.getContext("2d") : null;
         const scoreTextElement = document.getElementById("scoreText");
         const invincibleStatusElement = document.getElementById("invincibleStatus");
         const livesContainer = document.getElementById("livesContainer");
         const godModeBtn = document.getElementById("godModeBtn");
+        const bgmToggleBtn = document.getElementById("bgmToggleBtn");
+        const sfxToggleBtn = document.getElementById("sfxToggleBtn");
 
         const progressBarFill = document.getElementById("progressBarFill");
         const node0 = document.getElementById("node-0");
@@ -358,7 +666,6 @@
         let laprasLoaded = false;
 
         const newObstacleImgs = {};
-        // 또가스 -> 망키(#56), 라프라스 -> 독파리(#73)로 변경
         const newObstacleList = [
             { id: 39, name: 'jigglypuff', emoji: '🎤' },
             { id: 50, name: 'diglett', emoji: '🕳️' },
@@ -389,7 +696,6 @@
         const alakazamImg = loadImage("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/65.png", () => alakazamLoaded = true);
         const mewtwoImg = loadImage(`${BASE_CDN}150.png`, () => mewtwoLoaded = true);
 
-        // 전설의 새 포켓몬 공식 이미지 로드 (프리져 #144, 썬더 #145, 파이어 #146)
         const articunoImg = loadImage(`${BASE_CDN}144.png`, () => articunoLoaded = true);
         const zapdosImg = loadImage(`${BASE_CDN}145.png`, () => zapdosLoaded = true);
         const moltresImg = loadImage(`${BASE_CDN}146.png`, () => moltresLoaded = true);
@@ -514,8 +820,42 @@
         const joystickBase = document.getElementById("joystickBase");
         const joystickStick = document.getElementById("joystickStick");
 
+        if (bgmToggleBtn) {
+            bgmToggleBtn.addEventListener("click", () => {
+                initAudio();
+                playClickSFX();
+                isBGMEnabled = !isBGMEnabled;
+                if (isBGMEnabled) {
+                    bgmToggleBtn.classList.remove("muted");
+                    bgmToggleBtn.textContent = "🎵 BGM ON";
+                    startBGM();
+                } else {
+                    bgmToggleBtn.classList.add("muted");
+                    bgmToggleBtn.textContent = "🔇 BGM OFF";
+                    stopBGM();
+                }
+            });
+        }
+
+        if (sfxToggleBtn) {
+            sfxToggleBtn.addEventListener("click", () => {
+                initAudio();
+                isSFXEnabled = !isSFXEnabled;
+                playClickSFX();
+                if (isSFXEnabled) {
+                    sfxToggleBtn.classList.remove("muted");
+                    sfxToggleBtn.textContent = "🔊 SFX ON";
+                } else {
+                    sfxToggleBtn.classList.add("muted");
+                    sfxToggleBtn.textContent = "🔇 SFX OFF";
+                }
+            });
+        }
+
         if (godModeBtn) {
             godModeBtn.addEventListener("click", () => {
+                initAudio();
+                playClickSFX();
                 isGodMode = !isGodMode;
                 if (isGodMode) {
                     godModeBtn.classList.add("active");
@@ -529,6 +869,7 @@
 
         if (joystickBase && joystickStick) {
             const handleTouchStart = (e) => {
+                initAudio();
                 for (let i = 0; i < e.changedTouches.length; i++) {
                     const touch = e.changedTouches[i];
                     if (joystickTouchId === null) {
@@ -617,7 +958,7 @@
         let ghostInterval = null;
         let infiniteObstacleInterval = null;
         let legendaryBirdsInterval = null;
-        let laprasInterval = null; // 무한모드 10초 주기 라프라스 스폰 타이머
+        let laprasInterval = null;
         
         let swimmerTimeout = null;
         let dratiniTimeout = null;
@@ -655,6 +996,7 @@
         let electricSparkParticles = [];
 
         window.addEventListener("keydown", (e) => {
+            initAudio();
             if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "w", "a", "s", "d", "W", "A", "S", "D"].includes(e.key)) {
                 e.preventDefault();
             }
@@ -667,6 +1009,7 @@
 
         if (canvas) {
             const handleCanvasClick = (e) => {
+                initAudio();
                 if (!isGameOver) return;
                 const rect = canvas.getBoundingClientRect();
                 const clickX = (e.clientX - rect.left) * (canvas.width / rect.width);
@@ -678,6 +1021,7 @@
                     clickY >= restartBtnRect.y &&
                     clickY <= restartBtnRect.y + restartBtnRect.h
                 ) {
+                    playClickSFX();
                     restartGame();
                 }
             };
@@ -796,7 +1140,6 @@
             });
         }
 
-        // 무한모드 전용: 10초마다 라프라스 스폰
         function spawnLapras() {
             if (isThunderboltActive || !isInfiniteMode) return;
             const { spawnX, spawnY } = getSpawnPosition();
@@ -1092,7 +1435,6 @@
                 if (!isGameOver && !document.hidden) spawnInfiniteRandomObstacle();
             }, 500);
 
-            // 무한모드 진입 후 10초마다 라프라스 등장
             laprasInterval = setInterval(() => {
                 if (!isGameOver && isInfiniteMode && !document.hidden) spawnLapras();
             }, 10000);
@@ -1198,6 +1540,7 @@
             lastTime = performance.now();
             updateProgressBar();
             startSpecialTimers();
+            if (isBGMEnabled) startBGM();
             requestAnimationFrame(gameLoop);
         }
 
@@ -1228,6 +1571,7 @@
                 if (!pikachu.isInvincible) {
                     pikachu.speed = pikachu.boostedSpeed;
                 }
+                playSpeedUpSFX();
                 speedUpFlashTimer = 1.0;
                 for (let i = 0; i < 28; i++) {
                     const angle = (i / 28) * Math.PI * 2;
@@ -1315,6 +1659,7 @@
                             isThunderboltActive = true;
                             thunderboltTimer = 0;
                             redThunderTriggered = true; 
+                            playThunderboltSFX();
 
                             slowpokes = []; magikarps = []; pidgeots = [];
                             zapdoses = []; ghosts = []; thunderStones = [];
@@ -1379,6 +1724,7 @@
                         charizard.x = charizard.targetX;
                         charizard.state = 'firing';
                         isCharizardEventFinished = true;
+                        playFireBlastSFX();
                         slowpokes.forEach(s => {
                             if (s.type === 'slowpoke') {
                                 s.type = 'slowbro';
@@ -1435,6 +1781,7 @@
                         blastoise.x = blastoise.targetX;
                         blastoise.state = 'firing';
                         isBlastoiseEventFinished = true;
+                        playHydroPumpSFX();
                         slowpokes.forEach(s => {
                             if (s.type === 'slowpoke' || s.type === 'slowbro') {
                                 s.type = 'slowking';
@@ -1489,6 +1836,7 @@
                         alakazam.x = alakazam.targetX;
                         alakazam.state = 'firing';
                         isPsychicActive = true;
+                        playPsychicSFX();
                     }
                 } else if (alakazam.state === 'firing') {
                     if (!isPsychicActive) {
@@ -1640,6 +1988,7 @@
 
                 if (Math.hypot(pikachu.x - ts.x, pikachu.y - ts.y) < pikachu.size + ts.size) {
                     thunderStones.splice(i, 1);
+                    playThunderStoneSFX();
                     pikachu.isInvincible = true;
                     pikachu.invincibleTimer = 4.0;
                     pikachu.speed = pikachu.boostedSpeed;
@@ -1660,8 +2009,11 @@
             const handleHit = () => {
                 lives--;
                 updateLivesUI();
+                playHitSFX();
                 if (lives <= 0) {
                     isGameOver = true;
+                    stopBGM();
+                    playGameOverSFX();
                 } else {
                     pikachu.hitInvincibleTimer = 1.5;
                 }
@@ -2246,34 +2598,38 @@
             }
 
             if (isGameOver) {
-                ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+                ctx.fillStyle = "rgba(0, 0, 0, 0.82)";
                 ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
                 ctx.fillStyle = "#FF4D4D";
-                ctx.font = "bold 36px sans-serif";
-                ctx.textAlign = "center"; ctx.textBaseline = "middle";
-                ctx.fillText("GAME OVER", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 35);
+                ctx.font = "bold 42px sans-serif";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText("GAME OVER", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 60);
 
-                ctx.fillStyle = "#FFDD00";
-                ctx.font = "bold 24px sans-serif";
-                ctx.fillText(`최종 점수: ${score} 점`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 15);
+                ctx.fillStyle = "#FFFFFF";
+                ctx.font = "bold 20px sans-serif";
+                ctx.fillText(`최종 점수: ${score}`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 10);
+                ctx.fillText(`생존 시간: ${survivalTime}초`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 25);
 
-                drawRestartButton(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 75, "🔄 'R' 키로 다시 시작");
+                drawRestartButton(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 90, "🔄 다시 시작 (R)");
             }
         }
 
-        function gameLoop(time) {
-            update(time);
+        function gameLoop(timestamp) {
+            update(timestamp);
             draw();
             if (!isGameOver) {
                 requestAnimationFrame(gameLoop);
             }
         }
 
-        updateProgressBar();
-        updateLivesUI();
-        startSpecialTimers();
-        requestAnimationFrame(gameLoop);
+        window.onload = function() {
+            updateLivesUI();
+            updateProgressBar();
+            startSpecialTimers();
+            requestAnimationFrame(gameLoop);
+        };
     </script>
 </body>
 </html>
