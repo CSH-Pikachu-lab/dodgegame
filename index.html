@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>피카츄 살리기</title>
+    <title>피카츄 살리기 - 업그레이드 에디션</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -213,9 +213,15 @@
             flex-direction: column;
             align-items: center;
             gap: 12px;
+            margin-top: 12px;
         }
 
-        .god-mode-btn {
+        .btn-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .action-btn {
             background: linear-gradient(135deg, #21262d, #30363d);
             color: #8b949e;
             border: 2px solid #484f58;
@@ -226,14 +232,24 @@
             cursor: pointer;
             transition: all 0.2s ease;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        .god-mode-btn.active {
+        .action-btn.active {
             background: linear-gradient(135deg, #ff9900, #ffee00);
             color: #000;
             border-color: #ffffff;
             box-shadow: 0 0 15px rgba(255, 238, 0, 0.8);
             transform: scale(1.05);
+        }
+
+        .action-btn.sound-active {
+            background: linear-gradient(135deg, #00c6ff, #0072ff);
+            color: #fff;
+            border-color: #ffffff;
+            box-shadow: 0 0 15px rgba(0, 198, 255, 0.8);
         }
 
         .joystick-container {
@@ -318,7 +334,10 @@
                 <canvas id="gameCanvas" width="600" height="600"></canvas>
                 
                 <div class="controls-panel">
-                    <button id="godModeBtn" class="god-mode-btn">🛡️ 무적 OFF</button>
+                    <div class="btn-group">
+                        <button id="godModeBtn" class="action-btn">🛡️ 무적 OFF</button>
+                        <button id="soundBtn" class="action-btn">🎵 사운드 OFF</button>
+                    </div>
                     
                     <div class="joystick-container">
                         <div id="joystickBase" class="joystick-base">
@@ -337,6 +356,7 @@
         const invincibleStatusElement = document.getElementById("invincibleStatus");
         const livesContainer = document.getElementById("livesContainer");
         const godModeBtn = document.getElementById("godModeBtn");
+        const soundBtn = document.getElementById("soundBtn");
 
         const progressBarFill = document.getElementById("progressBarFill");
         const node0 = document.getElementById("node-0");
@@ -345,6 +365,99 @@
         const node50 = document.getElementById("node-50");
         const node70 = document.getElementById("node-70");
 
+        /* 사운드 시스템 (AudioContext 기반 효과음 & BGM) */
+        let audioCtx = null;
+        let isSoundOn = false;
+        let bgmOscillator = null;
+        let bgmGain = null;
+        let bgmInterval = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playTone(freq, type, duration, vol = 0.1) {
+            if (!isSoundOn || !audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch(e){}
+        }
+
+        function playHitSound() {
+            playTone(150, 'sawtooth', 0.2, 0.2);
+        }
+
+        function playPowerupSound() {
+            if (!isSoundOn || !audioCtx) return;
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(300, now);
+            osc.frequency.exponentialRampToValueAtTime(800, now + 0.3);
+            gain.gain.setValueAtTime(0.15, now);
+            gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(now + 0.3);
+        }
+
+        function playSkillSound() {
+            playTone(587, 'square', 0.15, 0.1);
+            setTimeout(() => playTone(880, 'square', 0.25, 0.1), 100);
+        }
+
+        function startBGM() {
+            if (!isSoundOn || !audioCtx || bgmInterval) return;
+            const notes = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88]; // C, D, E, F, G, A, B
+            let step = 0;
+            bgmInterval = setInterval(() => {
+                if (!isSoundOn || document.hidden || isGameOver) return;
+                const freq = notes[step % notes.length];
+                playTone(freq, 'sine', 0.15, 0.03);
+                step++;
+            }, 250);
+        }
+
+        function stopBGM() {
+            if (bgmInterval) {
+                clearInterval(bgmInterval);
+                bgmInterval = null;
+            }
+        }
+
+        if (soundBtn) {
+            soundBtn.addEventListener("click", () => {
+                initAudio();
+                isSoundOn = !isSoundOn;
+                if (isSoundOn) {
+                    soundBtn.classList.add("sound-active");
+                    soundBtn.innerHTML = "🎵 사운드 ON";
+                    startBGM();
+                } else {
+                    soundBtn.classList.remove("sound-active");
+                    soundBtn.innerHTML = "🎵 사운드 OFF";
+                    stopBGM();
+                }
+            });
+        }
+
+        /* 이미지 리소스 관리 */
         let pikachuLoaded = false, raichuLoaded = false, charizardLoaded = false, redLoaded = false;
         let blastoiseLoaded = false, mewtwoLoaded = false, alakazamLoaded = false, oakLoaded = false;
         let slowpokeLoaded = false, slowkingLoaded = false, slowbroLoaded = false;
@@ -358,7 +471,6 @@
         let laprasLoaded = false;
 
         const newObstacleImgs = {};
-        // 또가스 -> 망키(#56), 라프라스 -> 독파리(#73)로 변경
         const newObstacleList = [
             { id: 39, name: 'jigglypuff', emoji: '🎤' },
             { id: 50, name: 'diglett', emoji: '🕳️' },
@@ -389,7 +501,6 @@
         const alakazamImg = loadImage("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/65.png", () => alakazamLoaded = true);
         const mewtwoImg = loadImage(`${BASE_CDN}150.png`, () => mewtwoLoaded = true);
 
-        // 전설의 새 포켓몬 공식 이미지 로드 (프리져 #144, 썬더 #145, 파이어 #146)
         const articunoImg = loadImage(`${BASE_CDN}144.png`, () => articunoLoaded = true);
         const zapdosImg = loadImage(`${BASE_CDN}145.png`, () => zapdosLoaded = true);
         const moltresImg = loadImage(`${BASE_CDN}146.png`, () => moltresLoaded = true);
@@ -600,12 +711,14 @@
         document.addEventListener("visibilitychange", () => {
             if (document.hidden) {
                 pauseStartTime = Date.now();
+                stopBGM();
             } else {
                 if (pauseStartTime > 0) {
                     totalPausedTime += (Date.now() - pauseStartTime);
                     pauseStartTime = 0;
                 }
                 lastTime = performance.now();
+                if (isSoundOn) startBGM();
             }
         });
 
@@ -617,7 +730,7 @@
         let ghostInterval = null;
         let infiniteObstacleInterval = null;
         let legendaryBirdsInterval = null;
-        let laprasInterval = null; // 무한모드 10초 주기 라프라스 스폰 타이머
+        let laprasInterval = null;
         
         let swimmerTimeout = null;
         let dratiniTimeout = null;
@@ -796,7 +909,6 @@
             });
         }
 
-        // 무한모드 전용: 10초마다 라프라스 스폰
         function spawnLapras() {
             if (isThunderboltActive || !isInfiniteMode) return;
             const { spawnX, spawnY } = getSpawnPosition();
@@ -1092,7 +1204,6 @@
                 if (!isGameOver && !document.hidden) spawnInfiniteRandomObstacle();
             }, 500);
 
-            // 무한모드 진입 후 10초마다 라프라스 등장
             laprasInterval = setInterval(() => {
                 if (!isGameOver && isInfiniteMode && !document.hidden) spawnLapras();
             }, 10000);
@@ -1247,6 +1358,7 @@
 
             if (survivalTime >= 70 && !pikachuThunderboltTriggered) {
                 pikachuThunderboltTriggered = true;
+                playSkillSound();
                 red = {
                     x: CANVAS_WIDTH + 100,
                     y: CANVAS_HEIGHT / 2 + 100,
@@ -1264,6 +1376,7 @@
 
             if (survivalTime >= 50 && !alakazamTriggered) {
                 alakazamTriggered = true;
+                playSkillSound();
                 red = {
                     x: CANVAS_WIDTH + 100,
                     y: CANVAS_HEIGHT / 2 + 100,
@@ -1276,6 +1389,7 @@
                 };
             } else if (survivalTime >= 35 && !blastoiseTriggered) {
                 blastoiseTriggered = true;
+                playSkillSound();
                 red = {
                     x: CANVAS_WIDTH + 100,
                     y: CANVAS_HEIGHT / 2 + 100,
@@ -1289,6 +1403,7 @@
             } else if (survivalTime >= 18 && !charizardTriggered) {
                 charizardTriggered = true;
                 isPhase2 = true;
+                playSkillSound();
                 red = {
                     x: CANVAS_WIDTH + 100,
                     y: CANVAS_HEIGHT / 2 + 100,
@@ -1643,6 +1758,7 @@
                     pikachu.isInvincible = true;
                     pikachu.invincibleTimer = 4.0;
                     pikachu.speed = pikachu.boostedSpeed;
+                    playPowerupSound();
                     if (invincibleStatusElement) {
                         invincibleStatusElement.textContent = "⚡ 라이츄 진화 (무적)! ⚡";
                         invincibleStatusElement.style.display = "inline";
@@ -1660,6 +1776,7 @@
             const handleHit = () => {
                 lives--;
                 updateLivesUI();
+                playHitSound();
                 if (lives <= 0) {
                     isGameOver = true;
                 } else {
