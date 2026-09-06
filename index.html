@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>피카츄 살리기 - Complete Edition</title>
+    <title>피카츄 살리기</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -166,30 +166,7 @@
         .controls-right {
             display: flex;
             align-items: center;
-            gap: 10px;
-        }
-
-        .audio-btn {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #ffd000;
-            padding: 4px 10px;
-            border-radius: 14px;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .audio-btn:hover {
-            background: rgba(255, 208, 0, 0.2);
-            border-color: #ffd000;
-        }
-
-        .audio-btn.muted {
-            color: #8b949e;
-            border-color: #484f58;
-            background: rgba(0,0,0,0.3);
+            gap: 12px;
         }
 
         .invincible-text {
@@ -236,7 +213,6 @@
             flex-direction: column;
             align-items: center;
             gap: 12px;
-            margin-top: 10px;
         }
 
         .god-mode-btn {
@@ -333,7 +309,6 @@
                 </div>
 
                 <div class="controls-right">
-                    <button id="audioToggleBtn" class="audio-btn">🎵 AUDIO ON</button>
                     <span id="invincibleStatus" class="invincible-text" style="display: none;">⚡ 무적! ⚡</span>
                     <div id="livesContainer" class="lives-container" title="남은 목숨"></div>
                 </div>
@@ -356,298 +331,12 @@
     </div>
 
     <script>
-        let audioCtx = null;
-        let isAudioEnabled = true;
-        let bgmTimer = null;
-        let bgmStep = 0;
-
-        function initAudio() {
-            if (!audioCtx) {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                if (AudioContext) {
-                    audioCtx = new AudioContext();
-                }
-            }
-            if (audioCtx && audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-        }
-
-        // 오디오 자동 재생 핸들러 (사용자 첫 클릭/키보드 입력 시 자동 활성화)
-        function enableAudioOnUserInteraction() {
-            initAudio();
-            if (isAudioEnabled && !bgmTimer && !isGameOver) {
-                startBGM();
-            }
-        }
-        ['click', 'touchstart', 'keydown'].forEach(evt => {
-            window.addEventListener(evt, enableAudioOnUserInteraction, { once: true });
-        });
-
-        // 8비트 레트로 BGM 시퀀서
-        const bgmMelody = [
-            261.63, 329.63, 392.00, 523.25, 392.00, 329.63, 261.63, 392.00,
-            293.66, 349.23, 440.00, 587.33, 440.00, 349.23, 293.66, 440.00,
-            329.63, 392.00, 493.88, 659.25, 493.88, 392.00, 329.63, 493.88,
-            261.63, 329.63, 392.00, 523.25, 659.25, 587.33, 523.25, 392.00,
-            523.25, 523.25, 0,       523.25, 587.33, 659.25, 523.25, 392.00,
-            440.00, 440.00, 0,       440.00, 523.25, 587.33, 440.00, 349.23,
-            392.00, 523.25, 659.25, 783.99, 659.25, 523.25, 392.00, 329.63,
-            293.66, 349.23, 392.00, 440.00, 493.88, 523.25, 587.33, 659.25
-        ];
-
-        const bgmBass = [
-            130.81, 130.81, 196.00, 130.81, 146.83, 146.83, 220.00, 146.83,
-            164.81, 164.81, 246.94, 164.81, 130.81, 130.81, 196.00, 130.81,
-            130.81, 196.00, 130.81, 196.00, 146.83, 220.00, 146.83, 220.00,
-            164.81, 246.94, 164.81, 246.94, 130.81, 130.81, 196.00, 261.63
-        ];
-
-        function playBGMStep() {
-            if (!isAudioEnabled || !audioCtx || isGameOver || document.hidden) return;
-
-            const now = audioCtx.currentTime;
-            const noteIndex = bgmStep % bgmMelody.length;
-            const bassIndex = bgmStep % bgmBass.length;
-
-            const freq = bgmMelody[noteIndex];
-            const bassFreq = bgmBass[bassIndex];
-
-            if (freq > 0) {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(freq, now);
-
-                gain.gain.setValueAtTime(0.04, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
-
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-
-                osc.start(now);
-                osc.stop(now + 0.12);
-            }
-
-            if (bassFreq > 0) {
-                const bassOsc = audioCtx.createOscillator();
-                const bassGain = audioCtx.createGain();
-                bassOsc.type = 'triangle';
-                bassOsc.frequency.setValueAtTime(bassFreq, now);
-
-                bassGain.gain.setValueAtTime(0.07, now);
-                bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.13);
-
-                bassOsc.connect(bassGain);
-                bassGain.connect(audioCtx.destination);
-
-                bassOsc.start(now);
-                bassOsc.stop(now + 0.14);
-            }
-
-            bgmStep = (bgmStep + 1) % bgmMelody.length;
-        }
-
-        function startBGM() {
-            if (bgmTimer) clearInterval(bgmTimer);
-            bgmStep = 0;
-            bgmTimer = setInterval(playBGMStep, 135);
-        }
-
-        function stopBGM() {
-            if (bgmTimer) {
-                clearInterval(bgmTimer);
-                bgmTimer = null;
-            }
-        }
-
-        function playClickSFX() {
-            if (!isAudioEnabled || !audioCtx) return;
-            initAudio();
-            const now = audioCtx.currentTime;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(800, now);
-            osc.frequency.exponentialRampToValueAtTime(400, now + 0.05);
-
-            gain.gain.setValueAtTime(0.1, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
-
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start(now);
-            osc.stop(now + 0.05);
-        }
-
-        function playHitSFX() {
-            if (!isAudioEnabled || !audioCtx) return;
-            initAudio();
-            const now = audioCtx.currentTime;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(160, now);
-            osc.frequency.exponentialRampToValueAtTime(40, now + 0.2);
-
-            gain.gain.setValueAtTime(0.2, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
-
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start(now);
-            osc.stop(now + 0.2);
-        }
-
-        function playThunderStoneSFX() {
-            if (!isAudioEnabled || !audioCtx) return;
-            initAudio();
-            const now = audioCtx.currentTime;
-            const freqs = [523.25, 659.25, 783.99, 1046.50, 1318.51];
-            freqs.forEach((f, idx) => {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(f, now + idx * 0.05);
-
-                gain.gain.setValueAtTime(0.08, now + idx * 0.05);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.05 + 0.1);
-
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(now + idx * 0.05);
-                osc.stop(now + idx * 0.05 + 0.1);
-            });
-        }
-
-        function playThunderboltSFX() {
-            if (!isAudioEnabled || !audioCtx) return;
-            initAudio();
-            const now = audioCtx.currentTime;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(120, now);
-            osc.frequency.linearRampToValueAtTime(1200, now + 0.3);
-            osc.frequency.exponentialRampToValueAtTime(200, now + 0.6);
-
-            gain.gain.setValueAtTime(0.15, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
-
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start(now);
-            osc.stop(now + 0.6);
-        }
-
-        function playFireBlastSFX() {
-            if (!isAudioEnabled || !audioCtx) return;
-            initAudio();
-            const now = audioCtx.currentTime;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(100, now);
-            osc.frequency.linearRampToValueAtTime(300, now + 0.2);
-            osc.frequency.exponentialRampToValueAtTime(50, now + 0.5);
-
-            gain.gain.setValueAtTime(0.2, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
-
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start(now);
-            osc.stop(now + 0.5);
-        }
-
-        function playHydroPumpSFX() {
-            if (!isAudioEnabled || !audioCtx) return;
-            initAudio();
-            const now = audioCtx.currentTime;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(300, now);
-            osc.frequency.linearRampToValueAtTime(800, now + 0.15);
-            osc.frequency.linearRampToValueAtTime(200, now + 0.4);
-
-            gain.gain.setValueAtTime(0.18, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
-
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start(now);
-            osc.stop(now + 0.4);
-        }
-
-        function playPsychicSFX() {
-            if (!isAudioEnabled || !audioCtx) return;
-            initAudio();
-            const now = audioCtx.currentTime;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(900, now);
-            osc.frequency.exponentialRampToValueAtTime(300, now + 0.5);
-
-            gain.gain.setValueAtTime(0.12, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
-
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start(now);
-            osc.stop(now + 0.5);
-        }
-
-        function playSpeedUpSFX() {
-            if (!isAudioEnabled || !audioCtx) return;
-            initAudio();
-            const now = audioCtx.currentTime;
-            const freqs = [300, 450, 600, 900, 1200];
-            freqs.forEach((f, idx) => {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(f, now + idx * 0.04);
-
-                gain.gain.setValueAtTime(0.08, now + idx * 0.04);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.04 + 0.08);
-
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(now + idx * 0.04);
-                osc.stop(now + idx * 0.04 + 0.08);
-            });
-        }
-
-        function playGameOverSFX() {
-            if (!isAudioEnabled || !audioCtx) return;
-            initAudio();
-            const now = audioCtx.currentTime;
-            const notes = [400, 350, 300, 250, 180];
-            notes.forEach((n, idx) => {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(n, now + idx * 0.12);
-
-                gain.gain.setValueAtTime(0.12, now + idx * 0.12);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.12 + 0.15);
-
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(now + idx * 0.12);
-                osc.stop(now + idx * 0.12 + 0.15);
-            });
-        }
-
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas ? canvas.getContext("2d") : null;
         const scoreTextElement = document.getElementById("scoreText");
         const invincibleStatusElement = document.getElementById("invincibleStatus");
         const livesContainer = document.getElementById("livesContainer");
         const godModeBtn = document.getElementById("godModeBtn");
-        const audioToggleBtn = document.getElementById("audioToggleBtn");
 
         const progressBarFill = document.getElementById("progressBarFill");
         const node0 = document.getElementById("node-0");
@@ -669,6 +358,7 @@
         let laprasLoaded = false;
 
         const newObstacleImgs = {};
+        // 또가스 -> 망키(#56), 라프라스 -> 독파리(#73)로 변경
         const newObstacleList = [
             { id: 39, name: 'jigglypuff', emoji: '🎤' },
             { id: 50, name: 'diglett', emoji: '🕳️' },
@@ -699,6 +389,7 @@
         const alakazamImg = loadImage("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/65.png", () => alakazamLoaded = true);
         const mewtwoImg = loadImage(`${BASE_CDN}150.png`, () => mewtwoLoaded = true);
 
+        // 전설의 새 포켓몬 공식 이미지 로드 (프리져 #144, 썬더 #145, 파이어 #146)
         const articunoImg = loadImage(`${BASE_CDN}144.png`, () => articunoLoaded = true);
         const zapdosImg = loadImage(`${BASE_CDN}145.png`, () => zapdosLoaded = true);
         const moltresImg = loadImage(`${BASE_CDN}146.png`, () => moltresLoaded = true);
@@ -823,28 +514,8 @@
         const joystickBase = document.getElementById("joystickBase");
         const joystickStick = document.getElementById("joystickStick");
 
-        // BGM/SFX 통합 오디오 제어 버튼 이벤트
-        if (audioToggleBtn) {
-            audioToggleBtn.addEventListener("click", () => {
-                initAudio();
-                isAudioEnabled = !isAudioEnabled;
-                playClickSFX();
-                if (isAudioEnabled) {
-                    audioToggleBtn.classList.remove("muted");
-                    audioToggleBtn.textContent = "🎵 AUDIO ON";
-                    startBGM();
-                } else {
-                    audioToggleBtn.classList.add("muted");
-                    audioToggleBtn.textContent = "🔇 AUDIO OFF";
-                    stopBGM();
-                }
-            });
-        }
-
         if (godModeBtn) {
             godModeBtn.addEventListener("click", () => {
-                initAudio();
-                playClickSFX();
                 isGodMode = !isGodMode;
                 if (isGodMode) {
                     godModeBtn.classList.add("active");
@@ -858,7 +529,6 @@
 
         if (joystickBase && joystickStick) {
             const handleTouchStart = (e) => {
-                initAudio();
                 for (let i = 0; i < e.changedTouches.length; i++) {
                     const touch = e.changedTouches[i];
                     if (joystickTouchId === null) {
@@ -927,20 +597,15 @@
         let score = 0;
         let lastTime = 0;
 
-        // 백그라운드 전환 시 오디오 일시정지
         document.addEventListener("visibilitychange", () => {
             if (document.hidden) {
                 pauseStartTime = Date.now();
-                stopBGM();
             } else {
                 if (pauseStartTime > 0) {
                     totalPausedTime += (Date.now() - pauseStartTime);
                     pauseStartTime = 0;
                 }
                 lastTime = performance.now();
-                if (isAudioEnabled && !isGameOver) {
-                    startBGM();
-                }
             }
         });
 
@@ -952,7 +617,7 @@
         let ghostInterval = null;
         let infiniteObstacleInterval = null;
         let legendaryBirdsInterval = null;
-        let laprasInterval = null;
+        let laprasInterval = null; // 무한모드 10초 주기 라프라스 스폰 타이머
         
         let swimmerTimeout = null;
         let dratiniTimeout = null;
@@ -990,7 +655,6 @@
         let electricSparkParticles = [];
 
         window.addEventListener("keydown", (e) => {
-            initAudio();
             if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "w", "a", "s", "d", "W", "A", "S", "D"].includes(e.key)) {
                 e.preventDefault();
             }
@@ -1003,7 +667,6 @@
 
         if (canvas) {
             const handleCanvasClick = (e) => {
-                initAudio();
                 if (!isGameOver) return;
                 const rect = canvas.getBoundingClientRect();
                 const clickX = (e.clientX - rect.left) * (canvas.width / rect.width);
@@ -1015,7 +678,6 @@
                     clickY >= restartBtnRect.y &&
                     clickY <= restartBtnRect.y + restartBtnRect.h
                 ) {
-                    playClickSFX();
                     restartGame();
                 }
             };
@@ -1134,6 +796,7 @@
             });
         }
 
+        // 무한모드 전용: 10초마다 라프라스 스폰
         function spawnLapras() {
             if (isThunderboltActive || !isInfiniteMode) return;
             const { spawnX, spawnY } = getSpawnPosition();
@@ -1429,6 +1092,7 @@
                 if (!isGameOver && !document.hidden) spawnInfiniteRandomObstacle();
             }, 500);
 
+            // 무한모드 진입 후 10초마다 라프라스 등장
             laprasInterval = setInterval(() => {
                 if (!isGameOver && isInfiniteMode && !document.hidden) spawnLapras();
             }, 10000);
@@ -1534,7 +1198,6 @@
             lastTime = performance.now();
             updateProgressBar();
             startSpecialTimers();
-            if (isAudioEnabled) startBGM();
             requestAnimationFrame(gameLoop);
         }
 
@@ -1565,7 +1228,6 @@
                 if (!pikachu.isInvincible) {
                     pikachu.speed = pikachu.boostedSpeed;
                 }
-                playSpeedUpSFX();
                 speedUpFlashTimer = 1.0;
                 for (let i = 0; i < 28; i++) {
                     const angle = (i / 28) * Math.PI * 2;
@@ -1653,7 +1315,6 @@
                             isThunderboltActive = true;
                             thunderboltTimer = 0;
                             redThunderTriggered = true; 
-                            playThunderboltSFX();
 
                             slowpokes = []; magikarps = []; pidgeots = [];
                             zapdoses = []; ghosts = []; thunderStones = [];
@@ -1718,7 +1379,6 @@
                         charizard.x = charizard.targetX;
                         charizard.state = 'firing';
                         isCharizardEventFinished = true;
-                        playFireBlastSFX();
                         slowpokes.forEach(s => {
                             if (s.type === 'slowpoke') {
                                 s.type = 'slowbro';
@@ -1775,7 +1435,6 @@
                         blastoise.x = blastoise.targetX;
                         blastoise.state = 'firing';
                         isBlastoiseEventFinished = true;
-                        playHydroPumpSFX();
                         slowpokes.forEach(s => {
                             if (s.type === 'slowpoke' || s.type === 'slowbro') {
                                 s.type = 'slowking';
@@ -1830,7 +1489,6 @@
                         alakazam.x = alakazam.targetX;
                         alakazam.state = 'firing';
                         isPsychicActive = true;
-                        playPsychicSFX();
                     }
                 } else if (alakazam.state === 'firing') {
                     if (!isPsychicActive) {
@@ -1982,7 +1640,6 @@
 
                 if (Math.hypot(pikachu.x - ts.x, pikachu.y - ts.y) < pikachu.size + ts.size) {
                     thunderStones.splice(i, 1);
-                    playThunderStoneSFX();
                     pikachu.isInvincible = true;
                     pikachu.invincibleTimer = 4.0;
                     pikachu.speed = pikachu.boostedSpeed;
@@ -2003,11 +1660,8 @@
             const handleHit = () => {
                 lives--;
                 updateLivesUI();
-                playHitSFX();
                 if (lives <= 0) {
                     isGameOver = true;
-                    stopBGM();
-                    playGameOverSFX();
                 } else {
                     pikachu.hitInvincibleTimer = 1.5;
                 }
@@ -2123,6 +1777,31 @@
                 ctx.stroke();
             }
 
+            const numSparks = 4;
+            for (let s = 0; s < numSparks; s++) {
+                const angle = Math.random() * Math.PI * 2;
+                const innerR = 6 + Math.random() * 6;
+                const outerR = currentRadius + 6 + Math.random() * 14;
+
+                const x1 = x + Math.cos(angle) * innerR;
+                const y1 = y + Math.sin(angle) * innerR;
+                const x2 = x + Math.cos(angle) * outerR;
+                const y2 = y + Math.sin(angle) * outerR;
+
+                ctx.strokeStyle = Math.random() > 0.3 ? "#ffffff" : "#ffee00";
+                ctx.lineWidth = 1.8;
+                ctx.shadowColor = "#ffffff";
+                ctx.shadowBlur = 10;
+
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                const midX = (x1 + x2) / 2 + (Math.random() - 0.5) * 16;
+                const midY = (y1 + y2) / 2 + (Math.random() - 0.5) * 16;
+                ctx.lineTo(midX, midY);
+                ctx.lineTo(x2, y2);
+                ctx.stroke();
+            }
+
             electricSparkParticles.forEach(p => {
                 ctx.strokeStyle = p.color;
                 ctx.lineWidth = p.size;
@@ -2194,359 +1873,405 @@
             ctx.save();
             ctx.translate(x, y);
 
-            ctx.shadowBlur = 30;
-            ctx.shadowColor = "#00b0ff";
+            const waveHeight = height * 0.8 + Math.sin(time) * (height * 0.2);
+            const gradient = ctx.createLinearGradient(0, -waveHeight/2, 0, waveHeight/2);
+            gradient.addColorStop(0, "rgba(225, 245, 254, 0.0)");
+            gradient.addColorStop(0.15, "rgba(79, 195, 247, 0.9)");
+            gradient.addColorStop(0.5, "rgba(255, 255, 255, 1.0)");
+            gradient.addColorStop(0.85, "rgba(2, 136, 209, 0.9)");
+            gradient.addColorStop(1, "rgba(1, 87, 155, 0.0)");
 
-            const grad = ctx.createLinearGradient(0, -height / 2, 0, height / 2);
-            grad.addColorStop(0, "rgba(2, 136, 209, 0.8)");
-            grad.addColorStop(0.5, "rgba(79, 195, 247, 0.9)");
-            grad.addColorStop(1, "rgba(2, 136, 209, 0.8)");
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, -waveHeight / 2, width, waveHeight);
+            ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+            ctx.fillRect(0, -waveHeight * 0.15, width, waveHeight * 0.3);
+            ctx.restore();
+        }
 
-            ctx.fillStyle = grad;
-            ctx.fillRect(-width / 2, -height / 2, width, height);
+        function drawLightningBolt(x1, y1, x2, y2) {
+            if (!ctx) return;
+            ctx.save();
+            ctx.strokeStyle = "#ffff55";
+            ctx.lineWidth = 3;
+            ctx.shadowColor = "#ffee00";
+            ctx.shadowBlur = 15;
+
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+
+            const segments = 6;
+            for (let i = 1; i < segments; i++) {
+                const targetX = x1 + (x2 - x1) * (i / segments);
+                const targetY = y1 + (y2 - y1) * (i / segments);
+                ctx.lineTo(targetX + (Math.random() - 0.5) * 50, targetY + (Math.random() - 0.5) * 50);
+            }
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
 
             ctx.strokeStyle = "#ffffff";
-            ctx.lineWidth = 6;
-            ctx.beginPath();
-            for (let i = 0; i < 5; i++) {
-                const py = -height / 2 + (height / 6) * (i + 1) + Math.sin(time * 8 + i) * 15;
-                ctx.moveTo(-width / 2, py);
-                ctx.lineTo(width / 2, py + Math.cos(time * 10 + i) * 20);
-            }
+            ctx.lineWidth = 1.5;
             ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawSpeechBubble(x, y, text) {
+            if (!ctx) return;
+            ctx.save();
+            ctx.font = "bold 15px Arial, sans-serif";
+            const textWidth = ctx.measureText(text).width;
+            const bubbleWidth = textWidth + 24;
+            const bubbleHeight = 36;
+            const bx = x - bubbleWidth / 2;
+            const by = y - 70;
+
+            ctx.fillStyle = "#ffffff";
+            ctx.strokeStyle = "#000000";
+            ctx.lineWidth = 2.5;
+
+            ctx.beginPath();
+            if (typeof ctx.roundRect === "function") {
+                ctx.roundRect(bx, by, bubbleWidth, bubbleHeight, 8);
+            } else {
+                ctx.rect(bx, by, bubbleWidth, bubbleHeight);
+            }
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(x - 6, by + bubbleHeight);
+            ctx.lineTo(x + 6, by + bubbleHeight);
+            ctx.lineTo(x, by + bubbleHeight + 9);
+            ctx.closePath();
+            ctx.fillStyle = "#ffffff";
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = "#000000";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(text, x, by + bubbleHeight / 2);
+            ctx.restore();
+        }
+
+        function drawRestartButton(cx, cy, subText) {
+            if (!ctx) return;
+            ctx.save();
+            
+            const btnWidth = 260;
+            const btnHeight = 44;
+            const btnX = cx - btnWidth / 2;
+            const btnY = cy - btnHeight / 2;
+
+            restartBtnRect = { x: btnX, y: btnY, w: btnWidth, h: btnHeight };
+
+            ctx.fillStyle = "rgba(255, 255, 255, 0.12)";
+            ctx.strokeStyle = "#FFDD00";
+            ctx.lineWidth = 2;
+            
+            ctx.beginPath();
+            if (typeof ctx.roundRect === "function") {
+                ctx.roundRect(btnX, btnY, btnWidth, btnHeight, 22);
+            } else {
+                ctx.rect(btnX, btnY, btnWidth, btnHeight);
+            }
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = "#FFDD00";
+            ctx.font = "bold 17px sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(subText, cx, cy);
 
             ctx.restore();
         }
 
-        function render() {
+        function draw() {
             if (!ctx) return;
-            ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            ctx.fillStyle = "#000";
+            ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            ctx.imageSmoothingEnabled = false;
 
-            if (isThunderboltActive) {
-                ctx.fillStyle = "rgba(255, 255, 200, 0.35)";
+            if (isThunderboltActive && Math.random() > 0.35) {
+                ctx.fillStyle = "rgba(255, 255, 180, 0.18)";
                 ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            }
 
-                ctx.strokeStyle = "#ffff00";
-                ctx.lineWidth = 4;
-                ctx.shadowColor = "#ffffff";
-                ctx.shadowBlur = 15;
+            if (speedUpFlashTimer > 0) {
+                ctx.save();
+                ctx.globalCompositeOperation = "lighter";
+                const alpha = Math.max(0, speedUpFlashTimer);
+                const radius = (1.0 - speedUpFlashTimer) * 75 + 15;
 
-                lightningBolts.forEach(bolt => {
+                ctx.beginPath();
+                ctx.arc(pikachu.x, pikachu.y, radius, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(0, 242, 254, ${alpha})`;
+                ctx.lineWidth = 5 * alpha;
+                ctx.shadowColor = "#00f2fe";
+                ctx.shadowBlur = 18;
+                ctx.stroke();
+
+                const grad = ctx.createRadialGradient(pikachu.x, pikachu.y, 0, pikachu.x, pikachu.y, 40);
+                grad.addColorStop(0, `rgba(255, 255, 255, ${alpha * 0.95})`);
+                grad.addColorStop(0.5, `rgba(255, 230, 0, ${alpha * 0.7})`);
+                grad.addColorStop(1, `rgba(0, 242, 254, 0)`);
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(pikachu.x, pikachu.y, 40, 0, Math.PI * 2);
+                ctx.fill();
+
+                speedUpFlashParticles.forEach(p => {
+                    ctx.fillStyle = p.color;
+                    ctx.globalAlpha = Math.max(0, p.life);
                     ctx.beginPath();
-                    ctx.moveTo(bolt.startX, bolt.startY);
-                    const midX = (bolt.startX + bolt.endX) / 2 + (Math.random() - 0.5) * 60;
-                    const midY = (bolt.startY + bolt.endY) / 2 + (Math.random() - 0.5) * 60;
-                    ctx.lineTo(midX, midY);
-                    ctx.lineTo(bolt.endX, bolt.endY);
-                    ctx.stroke();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
                 });
+                ctx.restore();
             }
 
-            if (globalObstacleOpacity < 1.0) {
-                ctx.globalAlpha = globalObstacleOpacity;
+            if (pikachu.isInvincible || isGodMode) {
+                const shouldDrawField = isGodMode || pikachu.invincibleTimer > 1.5 || (Math.floor(pikachu.invincibleTimer * 12) % 2 === 0);
+                if (shouldDrawField) {
+                    drawElectricField(pikachu.x, pikachu.y);
+                }
             }
+
+            ctx.save();
+            if (pikachu.hitInvincibleTimer > 0 && !pikachu.isInvincible && !isGodMode) {
+                const isFlickerVisible = Math.floor(pikachu.hitInvincibleTimer * 14) % 2 === 0;
+                ctx.globalAlpha = isFlickerVisible ? 0.3 : 1.0;
+            }
+
+            const isCurrentRaichu = pikachu.isInvincible || isGodMode;
+            const activePlayerImg = isCurrentRaichu ? (raichuLoaded ? raichuImg : pikachuImg) : (pikachuLoaded ? pikachuImg : null);
+            if (activePlayerImg) {
+                const w = isCurrentRaichu ? 60 : pikachu.drawWidth;
+                const h = isCurrentRaichu ? 60 : pikachu.drawHeight;
+                ctx.drawImage(activePlayerImg, pikachu.x - w / 2, pikachu.y - h / 2, w, h);
+            } else {
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "34px sans-serif";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(isCurrentRaichu ? "⚡🐭" : "⚡", pikachu.x, pikachu.y);
+            }
+            ctx.restore();
+
+            ctx.save();
+            ctx.globalAlpha = globalObstacleOpacity;
 
             thunderStones.forEach(ts => {
                 if (thunderStoneLoaded) {
                     ctx.drawImage(thunderStoneImg, ts.x - ts.drawWidth / 2, ts.y - ts.drawHeight / 2, ts.drawWidth, ts.drawHeight);
                 } else {
-                    ctx.fillStyle = "#ffea00";
-                    ctx.beginPath();
-                    ctx.arc(ts.x, ts.y, ts.size, 0, Math.PI * 2);
-                    ctx.fill();
+                    ctx.fillStyle = "#ffffff"; ctx.font = "22px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                    ctx.fillText("💎", ts.x, ts.y);
                 }
             });
 
             slowpokes.forEach(s => {
-                let imgToDraw = slowpokeImg;
-                let loaded = slowpokeLoaded;
-                if (s.type === 'slowking') { imgToDraw = slowkingImg; loaded = slowkingLoaded; }
-                else if (s.type === 'slowbro') { imgToDraw = slowbroImg; loaded = slowbroLoaded; }
+                let img = null;
+                if (s.type === 'slowbro') img = slowbroLoaded ? slowbroImg : null;
+                else if (s.type === 'slowking') img = slowkingLoaded ? slowkingImg : null;
+                else img = slowpokeLoaded ? slowpokeImg : null;
 
-                if (loaded) {
-                    ctx.drawImage(imgToDraw, s.x - s.drawWidth / 2, s.y - s.drawHeight / 2, s.drawWidth, s.drawHeight);
+                if (img) {
+                    ctx.drawImage(img, s.x - s.drawWidth / 2, s.y - s.drawHeight / 2, s.drawWidth, s.drawHeight);
                 } else {
-                    ctx.fillStyle = "#ff80ab";
-                    ctx.beginPath();
-                    ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
-                    ctx.fill();
+                    ctx.fillStyle = "#ffffff"; ctx.font = "22px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                    let emoji = "🦛";
+                    if (s.type === 'slowbro') emoji = "🦛🐚";
+                    else if (s.type === 'slowking') emoji = "👑";
+                    ctx.fillText(emoji, s.x, s.y);
                 }
             });
 
             magikarps.forEach(m => {
-                let imgToDraw = m.type === 'mew' ? mewImg : magikarpImg;
-                let loaded = m.type === 'mew' ? mewLoaded : magikarpLoaded;
-
-                if (loaded) {
-                    ctx.drawImage(imgToDraw, m.x - m.drawWidth / 2, m.y - m.drawHeight / 2, m.drawWidth, m.drawHeight);
+                const img = m.type === 'mew' ? (mewLoaded ? mewImg : null) : (magikarpLoaded ? magikarpImg : null);
+                if (img) {
+                    ctx.drawImage(img, m.x - m.drawWidth / 2, m.y - m.drawHeight / 2, m.drawWidth, m.drawHeight);
                 } else {
-                    ctx.fillStyle = m.type === 'mew' ? "#ff80ab" : "#ff3d00";
-                    ctx.beginPath();
-                    ctx.arc(m.x, m.y, m.size, 0, Math.PI * 2);
-                    ctx.fill();
+                    ctx.fillStyle = "#ffffff"; ctx.font = "22px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                    ctx.fillText(m.type === 'mew' ? "✨" : "🐟", m.x, m.y);
                 }
             });
 
             pidgeots.forEach(p => {
-                let imgToDraw = pidgeotImg;
-                let loaded = pidgeotLoaded;
-                if (p.type === 'gyarados') { imgToDraw = gyaradosImg; loaded = gyaradosLoaded; }
-                else if (p.type === 'red_gyarados') { imgToDraw = redGyaradosImg; loaded = redGyaradosLoaded; }
-                else if (p.type === 'jynx') { imgToDraw = jynxImg; loaded = jynxLoaded; }
+                let img = null, emoji = "🦅";
+                if (p.type === 'jynx') { img = jynxLoaded ? jynxImg : null; emoji = "👄"; }
+                else if (p.type === 'red_gyarados') { img = redGyaradosLoaded ? redGyaradosImg : null; emoji = "🔴🐉"; }
+                else if (p.type === 'gyarados') { img = gyaradosLoaded ? gyaradosImg : null; emoji = "🐉"; }
+                else { img = pidgeotLoaded ? pidgeotImg : null; }
 
-                if (loaded) {
-                    ctx.drawImage(imgToDraw, p.x - p.drawWidth / 2, p.y - p.drawHeight / 2, p.drawWidth, p.drawHeight);
+                if (img) {
+                    ctx.drawImage(img, p.x - p.drawWidth / 2, p.y - p.drawHeight / 2, p.drawWidth, p.drawHeight);
                 } else {
-                    ctx.fillStyle = "#8d6e63";
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    ctx.fill();
+                    ctx.fillStyle = "#ffffff"; ctx.font = "28px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                    ctx.fillText(emoji, p.x, p.y);
                 }
             });
 
             zapdoses.forEach(z => {
-                let imgToDraw = zapdosImg;
-                let loaded = zapdosLoaded;
-                if (z.type === 'hooh') { imgToDraw = hoohImg; loaded = hoohLoaded; }
-                else if (z.type === 'articuno') { imgToDraw = articunoImg; loaded = articunoLoaded; }
-                else if (z.type === 'moltres') { imgToDraw = moltresImg; loaded = moltresLoaded; }
-                else if (z.type === 'mewtwo') { imgToDraw = mewtwoImg; loaded = mewtwoLoaded; }
-                else if (z.type === 'oak') { imgToDraw = oakImg; loaded = oakLoaded; }
-                else if (z.type === 'snorlax') { imgToDraw = snorlaxImg; loaded = snorlaxLoaded; }
+                let img = null, emoji = "⚡🦅";
+                if (z.type === 'articuno') { img = articunoLoaded ? articunoImg : null; emoji = "❄️🦅"; }
+                else if (z.type === 'moltres') { img = moltresLoaded ? moltresImg : null; emoji = "🔥🦅"; }
+                else if (z.type === 'mewtwo') { img = mewtwoLoaded ? mewtwoImg : null; emoji = "🧬🐱"; }
+                else if (z.type === 'oak') { img = oakLoaded ? oakImg : null; emoji = "👴🏻🔬"; }
+                else if (z.type === 'snorlax') { img = snorlaxLoaded ? snorlaxImg : null; emoji = "😴🐻"; }
+                else if (z.type === 'hooh') { img = hoohLoaded ? hoohImg : null; emoji = "🌈🦅"; }
+                else { img = zapdosLoaded ? zapdosImg : null; }
 
-                if (loaded) {
-                    ctx.drawImage(imgToDraw, z.x - z.drawWidth / 2, z.y - z.drawHeight / 2, z.drawWidth, z.drawHeight);
+                if (img) {
+                    ctx.drawImage(img, z.x - z.drawWidth / 2, z.y - z.drawHeight / 2, z.drawWidth, z.drawHeight);
                 } else {
-                    ctx.fillStyle = "#ffee00";
-                    ctx.beginPath();
-                    ctx.arc(z.x, z.y, z.size, 0, Math.PI * 2);
-                    ctx.fill();
+                    ctx.fillStyle = "#ffffff";
+                    let fontSize = "32px";
+                    if (z.type === 'oak' || z.type === 'snorlax') fontSize = "96px";
+                    else if (z.type === 'mewtwo') fontSize = "52px";
+                    else if (z.type === 'hooh') fontSize = "64px";
+                    ctx.font = fontSize + " sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                    ctx.fillText(emoji, z.x, z.y);
                 }
             });
+            
+            ctx.restore();
 
             ghosts.forEach(g => {
-                let imgToDraw = gastlyImg;
-                let loaded = gastlyLoaded;
-                if (g.type === 'haunter') { imgToDraw = haunterImg; loaded = haunterLoaded; }
-                else if (g.type === 'gengar') { imgToDraw = gengarImg; loaded = gengarLoaded; }
+                let img = null, emoji = "👻";
+                if (g.type === 'gastly') img = gastlyLoaded ? gastlyImg : null;
+                else if (g.type === 'haunter') img = haunterLoaded ? haunterImg : null;
+                else if (g.type === 'gengar') img = gengarLoaded ? gengarImg : null;
 
-                if (loaded) {
-                    ctx.drawImage(imgToDraw, g.x - g.drawWidth / 2, g.y - g.drawHeight / 2, g.drawWidth, g.drawHeight);
+                if (img) {
+                    ctx.drawImage(img, g.x - g.drawWidth / 2, g.y - g.drawHeight / 2, g.drawWidth, g.drawHeight);
                 } else {
-                    ctx.fillStyle = "#7b1fa2";
-                    ctx.beginPath();
-                    ctx.arc(g.x, g.y, g.size, 0, Math.PI * 2);
-                    ctx.fill();
+                    ctx.fillStyle = "#ffffff"; ctx.font = "32px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                    ctx.fillText(emoji, g.x, g.y);
                 }
             });
 
             infiniteObstacles.forEach(obs => {
-                let item = newObstacleImgs[obs.name];
+                let imgToDraw = null;
                 if (obs.name === 'lapras') {
-                    if (laprasLoaded) {
-                        ctx.drawImage(laprasImg, obs.x - obs.drawWidth / 2, obs.y - obs.drawHeight / 2, obs.drawWidth, obs.drawHeight);
-                    } else {
-                        ctx.fillStyle = "#0288d1"; ctx.beginPath(); ctx.arc(obs.x, obs.y, obs.size, 0, Math.PI * 2); ctx.fill();
-                    }
-                } else if (item && item.loaded) {
-                    ctx.drawImage(item.img, obs.x - obs.drawWidth / 2, obs.y - obs.drawHeight / 2, obs.drawWidth, obs.drawHeight);
+                    imgToDraw = laprasLoaded ? laprasImg : null;
                 } else {
-                    ctx.font = "28px sans-serif";
+                    const targetObj = newObstacleImgs[obs.name];
+                    if (targetObj && targetObj.loaded) imgToDraw = targetObj.img;
+                }
+
+                if (imgToDraw) {
+                    ctx.drawImage(imgToDraw, obs.x - obs.drawWidth / 2, obs.y - obs.drawHeight / 2, obs.drawWidth, obs.drawHeight);
+                } else {
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = "34px sans-serif";
                     ctx.textAlign = "center";
                     ctx.textBaseline = "middle";
-                    ctx.fillText(obs.emoji || '❓', obs.x, obs.y);
+                    ctx.fillText(obs.emoji || "❓", obs.x, obs.y);
                 }
             });
 
             swimmers.forEach(sw => {
-                let imgToDraw = sw.type === 'swimmerf2' ? swimmerf2Img : swimmerImg;
-                let loaded = sw.type === 'swimmerf2' ? swimmerf2Loaded : swimmerLoaded;
-
-                if (loaded) {
-                    ctx.drawImage(imgToDraw, sw.x - sw.drawWidth / 2, sw.y - sw.drawHeight / 2, sw.drawWidth, sw.drawHeight);
+                let img = sw.type === 'swimmerf2' ? (swimmerf2Loaded ? swimmerf2Img : null) : (swimmerLoaded ? swimmerImg : null);
+                if (img) {
+                    ctx.drawImage(img, sw.x - sw.drawWidth / 2, sw.y - sw.drawHeight / 2, sw.drawWidth, sw.drawHeight);
                 } else {
-                    ctx.fillStyle = "#00bcd4"; ctx.beginPath(); ctx.arc(sw.x, sw.y, sw.size, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = "72px sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText("🏊‍♀️", sw.x, sw.y);
                 }
             });
 
             dragons.forEach(d => {
-                let imgToDraw = dratiniImg;
-                let loaded = dratiniLoaded;
-                if (d.type === 'dragonair') { imgToDraw = dragonairImg; loaded = dragonairLoaded; }
-                else if (d.type === 'dragonite') { imgToDraw = dragoniteImg; loaded = dragoniteLoaded; }
+                let img = null, emoji = "🐉";
+                if (d.type === 'dratini') { img = dratiniLoaded ? dratiniImg : null; emoji = "🐍"; }
+                else if (d.type === 'dragonair') { img = dragonairLoaded ? dragonairImg : null; emoji = "🐉"; }
+                else if (d.type === 'dragonite') { img = dragoniteLoaded ? dragoniteImg : null; emoji = "🐲"; }
 
-                if (loaded) {
-                    ctx.drawImage(imgToDraw, d.x - d.drawWidth / 2, d.y - d.drawHeight / 2, d.drawWidth, d.drawHeight);
+                if (img) {
+                    ctx.drawImage(img, d.x - d.drawWidth / 2, d.y - d.drawHeight / 2, d.drawWidth, d.drawHeight);
                 } else {
-                    ctx.fillStyle = "#3f51b5"; ctx.beginPath(); ctx.arc(d.x, d.y, d.size, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = "64px sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText(emoji, d.x, d.y);
                 }
             });
 
-            ctx.globalAlpha = 1.0;
-
-            if (fireBlast) {
-                drawBlazingFireBlast(fireBlast.x, fireBlast.y, fireBlast.drawWidth, fireBlast.drawHeight);
-            }
-
-            if (hydroPump) {
-                drawHydroPump(hydroPump.x, hydroPump.y, hydroPump.drawWidth, hydroPump.drawHeight);
-            }
-
+            ctx.save();
+            ctx.globalCompositeOperation = "lighter";
             fireParticles.forEach(fp => {
-                ctx.save();
                 ctx.fillStyle = fp.colorType;
                 ctx.globalAlpha = Math.max(0, fp.life);
                 ctx.beginPath();
                 ctx.arc(fp.x, fp.y, fp.size, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.restore();
             });
+            ctx.restore();
 
-            speedUpFlashParticles.forEach(p => {
-                ctx.save();
-                ctx.fillStyle = p.color;
-                ctx.globalAlpha = Math.max(0, p.life);
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-            });
-
-            if (red) {
-                if (redLoaded) {
-                    ctx.drawImage(redImg, red.x - red.drawWidth / 2, red.y - red.drawHeight / 2, red.drawWidth, red.drawHeight);
-                } else {
-                    ctx.fillStyle = "#ff0000";
-                    ctx.beginPath();
-                    ctx.arc(red.x, red.y, 30, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-
-                if (red.state.startsWith('shouting')) {
-                    ctx.save();
-                    ctx.fillStyle = "#ffffff";
-                    ctx.strokeStyle = "#000000";
-                    ctx.lineWidth = 3;
-                    ctx.font = "900 20px -apple-system, sans-serif";
-                    ctx.textAlign = "center";
-                    const tx = red.x - 20;
-                    const ty = red.y - 80;
-
-                    ctx.beginPath();
-                    ctx.roundRect(tx - 110, ty - 25, 220, 45, 12);
-                    ctx.fill();
-                    ctx.stroke();
-
-                    ctx.fillStyle = "#000000";
-                    ctx.fillText(red.text, tx, ty + 6);
-                    ctx.restore();
-                }
+            if (isThunderboltActive) {
+                lightningBolts.forEach(bolt => {
+                    drawLightningBolt(bolt.startX, bolt.startY, bolt.endX, bolt.endY);
+                });
             }
 
-            if (charizard) {
-                if (charizardLoaded) {
-                    ctx.drawImage(charizardImg, charizard.x - charizard.drawWidth / 2, charizard.y - charizard.drawHeight / 2, charizard.drawWidth, charizard.drawHeight);
-                } else {
-                    ctx.fillStyle = "#ff6f00";
-                    ctx.beginPath();
-                    ctx.arc(charizard.x, charizard.y, 60, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-            }
+            if (fireBlast) drawBlazingFireBlast(fireBlast.x, fireBlast.y, fireBlast.drawWidth, fireBlast.drawHeight);
+            if (hydroPump) drawHydroPump(hydroPump.x, hydroPump.y, hydroPump.drawWidth, hydroPump.drawHeight);
 
             if (blastoise) {
-                if (blastoiseLoaded) {
-                    ctx.drawImage(blastoiseImg, blastoise.x - blastoise.drawWidth / 2, blastoise.y - blastoise.drawHeight / 2, blastoise.drawWidth, blastoise.drawHeight);
-                } else {
-                    ctx.fillStyle = "#0288d1";
-                    ctx.beginPath();
-                    ctx.arc(blastoise.x, blastoise.y, 60, 0, Math.PI * 2);
-                    ctx.fill();
-                }
+                if (blastoiseLoaded) ctx.drawImage(blastoiseImg, blastoise.x - blastoise.drawWidth / 2, blastoise.y - blastoise.drawHeight / 2, blastoise.drawWidth, blastoise.drawHeight);
+                else { ctx.fillStyle = "#ffffff"; ctx.font = "120px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("🐢💧", blastoise.x, blastoise.y); }
             }
 
             if (alakazam) {
-                if (alakazamLoaded) {
-                    ctx.drawImage(alakazamImg, alakazam.x - alakazam.drawWidth / 2, alakazam.y - alakazam.drawHeight / 2, alakazam.drawWidth, alakazam.drawHeight);
-                } else {
-                    ctx.fillStyle = "#fbc02d";
-                    ctx.beginPath();
-                    ctx.arc(alakazam.x, alakazam.y, 60, 0, Math.PI * 2);
-                    ctx.fill();
-                }
+                if (alakazamLoaded) ctx.drawImage(alakazamImg, alakazam.x - alakazam.drawWidth / 2, alakazam.y - alakazam.drawHeight / 2, alakazam.drawWidth, alakazam.drawHeight);
+                else { ctx.fillStyle = "#ffffff"; ctx.font = "120px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("🥄🥄", alakazam.x, alakazam.y); }
             }
 
-            const isHitFlicker = pikachu.hitInvincibleTimer > 0 && Math.floor(pikachu.hitInvincibleTimer * 12) % 2 === 0;
+            if (charizard) {
+                if (charizardLoaded) ctx.drawImage(charizardImg, charizard.x - charizard.drawWidth / 2, charizard.y - charizard.drawHeight / 2, charizard.drawWidth, charizard.drawHeight);
+                else { ctx.fillStyle = "#ffffff"; ctx.font = "120px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("🐲🔥", charizard.x, charizard.y); }
+            }
 
-            if (!isHitFlicker) {
-                if (pikachu.isInvincible || isGodMode) {
-                    drawElectricField(pikachu.x, pikachu.y);
-                }
-
-                const currentPikachuImg = pikachu.isInvincible ? raichuImg : pikachuImg;
-                const currentLoaded = pikachu.isInvincible ? raichuLoaded : pikachuLoaded;
-
-                if (currentLoaded) {
-                    ctx.drawImage(currentPikachuImg, pikachu.x - pikachu.drawWidth / 2, pikachu.y - pikachu.drawHeight / 2, pikachu.drawWidth, pikachu.drawHeight);
-                } else {
-                    ctx.fillStyle = pikachu.isInvincible ? "#ff9800" : "#ffeb3b";
-                    ctx.beginPath();
-                    ctx.arc(pikachu.x, pikachu.y, pikachu.size, 0, Math.PI * 2);
-                    ctx.fill();
+            if (red) {
+                if (redLoaded) ctx.drawImage(redImg, red.x - red.drawWidth / 2, red.y - red.drawHeight / 2, red.drawWidth, red.drawHeight);
+                else { ctx.fillStyle = "#ffffff"; ctx.font = "60px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("👦🏻🧢", red.x, red.y); }
+                
+                if (!red.state.startsWith('entering')) {
+                    drawSpeechBubble(red.x, red.y - red.drawHeight / 2, red.text);
                 }
             }
 
             if (isGameOver) {
-                ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+                ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
                 ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-                ctx.save();
-                ctx.textAlign = "center";
+                ctx.fillStyle = "#FF4D4D";
+                ctx.font = "bold 36px sans-serif";
+                ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                ctx.fillText("GAME OVER", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 35);
 
-                ctx.fillStyle = "#ff4d4d";
-                ctx.font = "900 42px -apple-system, sans-serif";
-                ctx.shadowColor = "rgba(255, 0, 0, 0.6)";
-                ctx.shadowBlur = 15;
-                ctx.fillText("GAME OVER", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 50);
+                ctx.fillStyle = "#FFDD00";
+                ctx.font = "bold 24px sans-serif";
+                ctx.fillText(`최종 점수: ${score} 점`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 15);
 
-                ctx.fillStyle = "#ffd000";
-                ctx.font = "800 24px -apple-system, sans-serif";
-                ctx.shadowColor = "rgba(255, 208, 0, 0.4)";
-                ctx.shadowBlur = 8;
-                ctx.fillText(`최종 스코어: ${score}`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
-
-                const btnW = 180;
-                const btnH = 50;
-                const btnX = CANVAS_WIDTH / 2 - btnW / 2;
-                const btnY = CANVAS_HEIGHT / 2 + 40;
-                restartBtnRect = { x: btnX, y: btnY, w: btnW, h: btnH };
-
-                ctx.fillStyle = "#ffee00";
-                ctx.shadowColor = "#ffee00";
-                ctx.shadowBlur = 10;
-                ctx.beginPath();
-                ctx.roundRect(btnX, btnY, btnW, btnH, 12);
-                ctx.fill();
-
-                ctx.fillStyle = "#000000";
-                ctx.font = "bold 18px -apple-system, sans-serif";
-                ctx.shadowBlur = 0;
-                ctx.fillText("다시 하기 (R)", CANVAS_WIDTH / 2, btnY + 31);
-
-                ctx.restore();
+                drawRestartButton(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 75, "🔄 'R' 키로 다시 시작");
             }
         }
 
-        function gameLoop(currentTime) {
-            update(currentTime);
-            render();
+        function gameLoop(time) {
+            update(time);
+            draw();
             if (!isGameOver) {
                 requestAnimationFrame(gameLoop);
             }
         }
 
-        updateLivesUI();
         updateProgressBar();
+        updateLivesUI();
         startSpecialTimers();
         requestAnimationFrame(gameLoop);
     </script>
